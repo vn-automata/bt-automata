@@ -58,7 +58,7 @@ class Validator(BaseValidatorNeuron):
         initial_state = cpl.init_simple(size)
 
         # Choose a random number of time-steps, between 100 and 1000
-        steps = random.randint(100, 1000)
+        steps = random.randint(1000, 5000)
 
         # Choose a random rule function. Limit to Class 3/4 rules in 1D
 
