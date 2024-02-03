@@ -50,35 +50,26 @@ class Validator(BaseValidatorNeuron):
         self.load_state()
 
     def get_random_params(self):
-        # Generate a random initial state as a 2D numpy array
-        initial_state = np.random.randint(2, size=(10, 10))
+        # Generate a random initial state as a 1D numpy array from cpl
 
-        # Choose a random number of steps
-        steps = random.randint(50, 100)
+        # size defines the dimensionn of the 1-D array. Between 100-1000
+        size = random.randint(100, 1000)
+        
+        initial_state = cpl.init_simple(size)
 
-        # Choose a random rule function. There should be a better way than adding new strings each time!
-        rule_funcs = {
-            "ConwayRule"
-            "HighLifeRule"
-            "DayAndNightRule"
-            "Rule30"
-            "Rule110"
-            "FredkinRule"
-            "BriansBrainRule"
-            "SeedsRule": SeedsRule,
-}
-        rule_func = random.choice(rule_funcs)
+        # Choose a random number of time-steps, between 100 and 1000
+        steps = random.randint(100, 1000)
 
-        # Choose a random neighborhood function. There should be a better way than adding new strings each time!
-        neighborhood_funcs = ["Moore", "Von Neumann"]
-        neighborhood_func = random.choice(neighborhood_funcs)
+        # Choose a random rule function. Limit to Class 3/4 rules in 1D
+
+        rule_func = random.choice([30, 54, 62, 110, 124, 126])
             
         # Log and return the parameters.
-        if initial_state is not None and steps is not None and rule_func is not None and neighborhood_func is not None:
+        if initial_state is not None and steps is not None and rule_func is not None:
             bt.logging.info(
-                f"Generated cellular automata parameters: {initial_state}, {steps}, {rule_func}, {neighborhood_func}"
+                f"Generated cellular automata parameters: {initial_state}, {steps}, {rule_func}"
             )
-        return initial_state, steps, rule_func, neighborhood_func    
+        return initial_state, steps, rule_func    
 
     async def forward(self):
         """
