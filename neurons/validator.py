@@ -30,6 +30,9 @@ from template.validator import forward
 # import base validator class which takes care of most of the boilerplate
 from template.base.validator import BaseValidatorNeuron
 
+#Internal modules
+from template.utils import rulesets
+
 
 class Validator(BaseValidatorNeuron):
     """
@@ -46,7 +49,36 @@ class Validator(BaseValidatorNeuron):
         bt.logging.info("load_state()")
         self.load_state()
 
-        # TODO(developer): Anything specific to your use case you can do here
+    def get_random_params(self):
+        # Generate a random initial state as a 2D numpy array
+        initial_state = np.random.randint(2, size=(10, 10))
+
+        # Choose a random number of steps
+        steps = random.randint(50, 100)
+
+        # Choose a random rule function. There should be a better way than adding new strings each time!
+        rule_funcs = {
+            "ConwayRule"
+            "HighLifeRule"
+            "DayAndNightRule"
+            "Rule30"
+            "Rule110"
+            "FredkinRule"
+            "BriansBrainRule"
+            "SeedsRule": SeedsRule,
+}
+        rule_func = random.choice(rule_funcs)
+
+        # Choose a random neighborhood function. There should be a better way than adding new strings each time!
+        neighborhood_funcs = ["Moore", "Von Neumann"]
+        neighborhood_func = random.choice(neighborhood_funcs)
+            
+        # Log and return the parameters.
+        if initial_state is not None and steps is not None and rule_func is not None and neighborhood_func is not None:
+            bt.logging.info(
+                f"Generated cellular automata parameters: {initial_state}, {steps}, {rule_func}, {neighborhood_func}"
+            )
+        return initial_state, steps, rule_func, neighborhood_func    
 
     async def forward(self):
         """
