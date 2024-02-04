@@ -68,6 +68,7 @@ class Validator(BaseValidatorNeuron):
         # Choose a random rule function. Limit to Class 3/4 rules in 1D. Covert it to a rule function using the rule_classes dictionary.
         rule_name = random.choice(['Rule30', 'Rule54', 'Rule62', 'Rule110', 'Rule124', 'Rule126'])
         rule_func = rule_classes.get(rule_name)
+        
         if rule_func is not None:
         # Rule name found, proceed!
         else:
@@ -86,7 +87,9 @@ class Validator(BaseValidatorNeuron):
         """
         Validator forward pass. Consists of:
         - Generating the query
+        initial_state, steps, rule_func = self.get_random_params()
         - Running the simulation
+        rulesets.Simulate1D(initial_state, steps, rule_func, r=1)
         - Querying the miners
         - Getting the responses
         - Rewarding the miners

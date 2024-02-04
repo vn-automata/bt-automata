@@ -55,11 +55,20 @@ class Miner(BaseMinerNeuron):
             synapse (template.protocol.Evolve): The synapse object containing the initial cconditions, steps, and ruleset data.
 
         Returns:
-            template.protocol.Evolve: The synapse object with the 'ca_result' that houses the result of the simulation.
+            template.protocol.Evolve: The synapse object with the 'array_data' that houses the result of the simulation. 
 
         """
         # TODO(Alex or Wayne): Replace with actual logic!
-        synapse.ca_result = 
+        # This is a sigma2's ugly placeholder for the actual logic that will be used to process the incoming synapse.
+        # Should give you an idea of how we expect the incoming CA query to be processed and returned by the miner.
+
+        # Get the initial state, timesteps, and rule function from the synapse.
+        initial_state = synapse.initial_state
+        timesteps = synapse.timesteps
+        rule_func = synapse.rule_func
+
+        # Run the simulation using the ruleset module.
+        synapse.array_data = rulesets.Simulate1D(initial_state, steps, rule_func, r=1)
 
         return synapse
 

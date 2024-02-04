@@ -134,7 +134,7 @@ class Simulate1D:
         return ca
 
 
-# Test rules with Simulate1D class
+""" # Test rules with Simulate1D class
 if __name__ == "__main__":
     initial_state = cpl.init_simple(100)
     rule_instance = Rule30()
@@ -146,3 +146,4 @@ if __name__ == "__main__":
     )
     result = sim.run()
     print(result)
+ """
