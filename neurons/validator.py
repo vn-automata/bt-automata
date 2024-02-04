@@ -36,11 +36,14 @@ from template.utils import rulesets
 
 class Validator(BaseValidatorNeuron):
     """
-    Your validator neuron class. You should use this class to define your validator's behavior. In particular, you should replace the forward function with your own logic.
+    Validator class for cellular automata protocol. This class will generate a random cellular automata rule and initial state, 
+    and then query the miners for their responses. It will then reward the miners based on the quality of their responses.
+    1-diimensional cellular automata are supported through the cpl library. The rule is chosen from a set of class 3/4 rules, 
+    and the initial state is a random 1D numpy array, such that the store of all agent states will be a 2-D numpy array indexed on time (steps).
 
-    This class inherits from the BaseValidatorNeuron class, which in turn inherits from BaseNeuron. The BaseNeuron class takes care of routine tasks such as setting up wallet, subtensor, metagraph, logging directory, parsing config, etc. You can override any of the methods in BaseNeuron if you need to customize the behavior.
+    Default: This class inherits from the BaseValidatorNeuron class, which in turn inherits from BaseNeuron. The BaseNeuron class takes care of routine tasks such as setting up wallet, subtensor, metagraph, logging directory, parsing config, etc. You can override any of the methods in BaseNeuron if you need to customize the behavior.
 
-    This class provides reasonable default behavior for a validator such as keeping a moving average of the scores of the miners and using them to set weights at the end of each epoch. Additionally, the scores are reset for new hotkeys at the end of each epoch.
+    Default: This class provides reasonable default behavior for a validator such as keeping a moving average of the scores of the miners and using them to set weights at the end of each epoch. Additionally, the scores are reset for new hotkeys at the end of each epoch.
     """
 
     def __init__(self, config=None):
@@ -62,7 +65,7 @@ class Validator(BaseValidatorNeuron):
 
         # Choose a random rule function. Limit to Class 3/4 rules in 1D
 
-        rule_func = random.choice([30, 54, 62, 110, 124, 126])
+        rule_func = random.choice(['Rule30', 'Rule54', 'Rule62', 'Rule110', 'Rule124', 'Rule126'])
             
         # Log and return the parameters.
         if initial_state is not None and steps is not None and rule_func is not None:
