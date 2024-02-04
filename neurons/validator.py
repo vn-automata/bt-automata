@@ -32,6 +32,7 @@ from template.base.validator import BaseValidatorNeuron
 
 #Internal modules
 from template.utils import rulesets
+from template.utils.rulesets import rule_classes
 
 
 class Validator(BaseValidatorNeuron):
@@ -58,32 +59,43 @@ class Validator(BaseValidatorNeuron):
         # size defines the dimensionn of the 1-D array. Between 100-1000
         size = random.randint(100, 1000)
         
-        initial_state = cpl.init_simple(size)
-
+        # Generate the initial state using the ruelsets module
+        initial_state = rulesets.InitialConditions(size)
+        
         # Choose a random number of time-steps, between 100 and 1000
         steps = random.randint(1000, 5000)
 
-        # Choose a random rule function. Limit to Class 3/4 rules in 1D
+        # Choose a random rule function. Limit to Class 3/4 rules in 1D. Covert it to a rule function using the rule_classes dictionary.
+        rule_name = random.choice(['Rule30', 'Rule54', 'Rule62', 'Rule110', 'Rule124', 'Rule126'])
+        rule_func = rule_classes.get(rule_name)
+        if rule_func is not None:
+        # Rule name found, proceed!
+        else:
+            # Rule name not found. Sound the alarm
+            raise ValueError(f"Rule '{rule_name}' not found in rule_classes dictionary.")
 
-        rule_func = random.choice(['Rule30', 'Rule54', 'Rule62', 'Rule110', 'Rule124', 'Rule126'])
-            
         # Log and return the parameters.
         if initial_state is not None and steps is not None and rule_func is not None:
             bt.logging.info(
-                f"Generated cellular automata parameters: {initial_state}, {steps}, {rule_func}"
+                f"Generated cellular automata parameters: {initial_state}, {steps}, {rule_name}"
             )
         return initial_state, steps, rule_func    
+
 
     async def forward(self):
         """
         Validator forward pass. Consists of:
         - Generating the query
+        - Running the simulation
         - Querying the miners
         - Getting the responses
         - Rewarding the miners
         - Updating the scores
         """
         # TODO(developer): Rewrite this function based on your protocol definition.
+
+
+
         return await forward(self)
 
 

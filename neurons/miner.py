@@ -58,7 +58,7 @@ class Miner(BaseMinerNeuron):
             template.protocol.Evolve: The synapse object with the 'ca_result' that houses the result of the simulation.
 
         """
-        # TODO(developer): Replace with actual implementation logic.
+        # TODO(Alex or Wayne): Replace with actual logic!
         synapse.ca_result = 
 
         return synapse

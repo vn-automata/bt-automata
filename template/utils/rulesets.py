@@ -42,6 +42,21 @@ class InitialConditions:
 
 
 #----------------- 1D Cellular Automata Rules -----------------#
+# Create a mapping of rule names to classes
+rule_classes = {
+    "ConwayRule": ConwayRule,
+    "HighLifeRule": HighLifeRule,
+    "DayAndNightRule": DayAndNightRule,
+    "Rule30": Rule30,
+    "Rule54": Rule54,
+    "Rule62": Rule62,
+    "Rule110": Rule110,
+    "Rule124": Rule124,
+    "Rule126": Rule126,
+    "FredkinRule": FredkinRule,
+    "BriansBrainRule": BriansBrainRule,
+    "SeedsRule": SeedsRule
+}
 
 class Rule30(ApplyRule):
     """Class 3. Implementation of a one-dimensional cellular automaton rule introduced by Stephen Wolfram, dubbed rule number 30 based on binary.
