@@ -1,6 +1,4 @@
 # The MIT License (MIT)
-# Copyright © 2023 Yuma Rao
-# Copyright © 2023 Opentensor Foundation
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 # documentation files (the “Software”), to deal in the Software without restriction, including without limitation
@@ -130,15 +128,10 @@ def serialize_and_compress(array: NDArray) -> str:
     """
     if not isinstance(array, np.ndarray):
         raise TypeError("Input must be a numpy array")
-    # Serialize the array to binary
     bytes_data = array.tobytes()
-    # Compress binary data
     compressed_data = zlib.compress(bytes_data)
-    # Encode the compressed data
     b64_encoded_data = base64.b64encode(compressed_data).decode("utf-8")
-    # Serialize the dtype and shape
     metadata = f"{array.dtype.str};{array.shape}"
-    # Combine the metadata and the encoded data
     array_data = f"{metadata}|{b64_encoded_data}"
     return array_data
 
@@ -157,17 +150,11 @@ def decompress_and_deserialize(data: str) -> NDArray:
     """
     if not isinstance(data, str):
         raise TypeError("Input must be a string")
-    # Split the metadata and the encoded data
     metadata, b64_encoded_data = data.split("|")
     dtype_str, shape_str = metadata.split(";")
-    # Convert the shape string to a tuple
     shape = tuple(map(int, shape_str.strip("()").split(",")))
-    # Convert the dtype string to a numpy dtype
     dtype = np.dtype(dtype_str)
-    # Decode the base64 encoded data
     decoded_data = base64.b64decode(b64_encoded_data)
-    # Decompress the binary data
     decompressed_data = zlib.decompress(decoded_data)
-    # Deserialize the binary data to a numpy array
     array = np.frombuffer(decompressed_data, dtype=dtype).reshape(shape)
     return array

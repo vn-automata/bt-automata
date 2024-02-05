@@ -1,6 +1,4 @@
 # The MIT License (MIT)
-# Copyright © 2023 Yuma Rao
-# Copyright © 2023 bt-automata
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 # documentation files (the “Software”), to deal in the Software without restriction, including without limitation
@@ -22,20 +20,31 @@ import bittensor as bt
 
 
 class Evolve(bt.Synapse):
-    # The initial state of the automata, encoded as string.
-    initial_state: str
+    """Synapse for type checking and serialization of the cellular automata transaction."""
 
-    # The number of timesteps to evolve the automata.
-    timesteps: int
+    initial_state: str = pydantic.Field(
+        "",
+        title="Initial State",
+        description="The initial state of the cellular automata, encoded as a string.",
+    )
 
-    # The rule function to apply to the automata.
-    rule_func: str
+    timesteps: int = pydantic.Field(
+        0,
+        title="Timesteps",
+        description="The number of timesteps to evolve the cellular automata.",
+    )
 
-    # The transformed array to be returned, encoded as string.
-    array_data: typing.Optional[str] = None
+    rule_func: str = pydantic.Field(
+        "",
+        title="Rule Function",
+        description="The rule function to apply to the cellular automata.",
+    )
 
-    # def evolve_example(self, synapse: protocol.Evolve) -> str:
-    #     return synapse.array_data
+    array_data: typing.Optional[str] = pydantic.Field(
+        None,
+        title="Array Data",
+        description="The transformed array to be returned, encoded as a string.",
+    )
 
     required_hash_fields: typing.List[str] = pydantic.Field(
         ["initial_state", "timesteps", "rule_func", "array_data"],
@@ -43,9 +52,6 @@ class Evolve(bt.Synapse):
         description="A list of required fields for the hash.",
         allow_mutation=False,
     )
-
-    # Returns a hash of the fields in the exchange, verifying transaction integrity.
-    # hash_value = synapse.body_hash
 
     def __str__(self):
         return (
@@ -56,10 +62,6 @@ class Evolve(bt.Synapse):
             f"axon={self.axon.dict()}",
             f"dendrite={self.dendrite.dict()}",
         )
-
-    # Simply return as string, more complex serialization,
-    # encoding and compression will be added into miner/validator
-    # shared library.
 
     def deserialize(self) -> str:
         return self.array_data
