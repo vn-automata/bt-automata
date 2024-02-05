@@ -68,7 +68,7 @@ class Miner(BaseMinerNeuron):
         rule_func = synapse.rule_func
 
         # Run the simulation using the ruleset module.
-        synapse.array_data = rulesets.Simulate1D(initial_state, steps, rule_func, r=1)
+        synapse.array_data = rulesets.Simulate1D(initial_state, timesteps, rule_func, r=1)
 
         return synapse
 
