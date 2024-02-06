@@ -1,4 +1,7 @@
 # The MIT License (MIT)
+# Copyright © 2023 Yuma Rao
+# TODO(developer): Set your name
+# Copyright © 2023 <your name>
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 # documentation files (the “Software”), to deal in the Software without restriction, including without limitation
@@ -18,10 +21,11 @@ import time
 import typing
 import bittensor as bt
 
+# Bittensor Miner Template:
 import template
-from template.utils import rulesets
+
+# import base miner class which takes care of most of the boilerplate
 from template.base.miner import BaseMinerNeuron
-from template.utils.misc import serialize_and_compress
 
 
 class Miner(BaseMinerNeuron):
@@ -39,60 +43,27 @@ class Miner(BaseMinerNeuron):
         # TODO(developer): Anything specific to your use case you can do here
 
     async def forward(
-        self, synapse: template.protocol.Evolve
-    ) -> template.protocol.Evolve:
+        self, synapse: template.protocol.Dummy
+    ) -> template.protocol.Dummy:
         """
-        Receive the incoming transmission, evolve the cellular automata, and return the result.
+        Processes the incoming 'Dummy' synapse by performing a predefined operation on the input data.
+        This method should be replaced with actual logic relevant to the miner's purpose.
 
         Args:
-            synapse (template.protocol.Evolve): The synapse object containing the initial state,
-            timesteps, and rule function to apply to the cellular automata.
+            synapse (template.protocol.Dummy): The synapse object containing the 'dummy_input' data.
 
         Returns:
-            template.protocol.Evolve: The synapse object containing the evolved cellular automata;
-            serialized, compressed, and encoded as a string for transmission.
+            template.protocol.Dummy: The synapse object with the 'dummy_output' field set to twice the 'dummy_input' value.
+
+        The 'forward' function is a placeholder and should be overridden with logic that is appropriate for
+        the miner's intended operation. This method demonstrates a basic transformation of input data.
         """
-
-        # Log incoming query
-        bt.logging.info(f"incoming request from: {synapse.dendrite.hotkey}")
-        bt.logging.info(f"initial_state: {synapse.initial_state}")
-        bt.logging.info(f"rule: {synapse.rule_func}")
-        bt.logging.info(f"timesteps: {synapse.timesteps}")
-
-        # Pass values from incoming synapse
-        timesteps = synapse.timesteps
-        rule_func = synapse.rule_func
-        initial_state = synapse.initial_state
-
-        # Evolve the cellular automata
-        bt.logging.info(f"evolving cellular automata for {timesteps} timesteps")
-
-        simulator = rulesets.Simulate1D(
-            ca=initial_state,
-            timesteps=timesteps,
-            rule_instance=rule_func,
-            r=1,  # TODO Fix call rule function
-        )
-
-        try:
-            evolved_array = simulator.run()
-        except Exception as e:
-            bt.logging.error(f"Error evolving cellular automata: {e}")
-        else:
-            bt.logging.info("evolution complete")
-            bt.logging.info(
-                f"evolved array: {evolved_array}"
-            )  # TODO More efficient error handling
-
-            # Serialize and compress the evolved array
-            serialized_array = serialize_and_compress(evolved_array)
-            synapse.array_data = serialized_array
-
-            bt.logging.info("transmitting cellular automata")
-            return synapse
+        # TODO(developer): Replace with actual implementation logic.
+        synapse.dummy_output = synapse.dummy_input * 2
+        return synapse
 
     async def blacklist(
-        self, synapse: template.protocol.Evolve
+        self, synapse: template.protocol.Dummy
     ) -> typing.Tuple[bool, str]:
         """
         Determines whether an incoming request should be blacklisted and thus ignored. Your implementation should
@@ -136,7 +107,7 @@ class Miner(BaseMinerNeuron):
         )
         return False, "Hotkey recognized!"
 
-    async def priority(self, synapse: template.protocol.Evolve) -> float:
+    async def priority(self, synapse: template.protocol.Dummy) -> float:
         """
         The priority function determines the order in which requests are handled. More valuable or higher-priority
         requests are processed before others. You should design your own priority mechanism with care.

@@ -19,7 +19,7 @@ import pydantic
 import bittensor as bt
 
 
-class Evolve(bt.Synapse):
+class CAsynapse(bt.Synapse):
     """Synapse for type checking and serialization of the cellular automata transaction."""
 
     initial_state: str = pydantic.Field(
