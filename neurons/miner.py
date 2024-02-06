@@ -22,10 +22,17 @@ import typing
 import bittensor as bt
 
 # Bittensor Miner Template:
-import template
+import bt_automata
 
 # import base miner class which takes care of most of the boilerplate
-from template.base.miner import BaseMinerNeuron
+from bt_automata.base.miner import BaseMinerNeuron
+
+# import CA rulesets
+from bt_automata.utils.rulesets import rulesets
+from bt_automata.utils.misc import (
+    serialize_and_compress,
+    decompress_and_deserialize,
+)
 
 
 class Miner(BaseMinerNeuron):
@@ -43,27 +50,36 @@ class Miner(BaseMinerNeuron):
         # TODO(developer): Anything specific to your use case you can do here
 
     async def forward(
-        self, synapse: template.protocol.Dummy
-    ) -> template.protocol.Dummy:
+        self, synapse: bt_automata.protocol.CAsynapse
+    ) -> bt_automata.protocol.CAsynapse:
         """
-        Processes the incoming 'Dummy' synapse by performing a predefined operation on the input data.
-        This method should be replaced with actual logic relevant to the miner's purpose.
+        Processes the incoming 'CAsynapse' synapse by running the specified simulation recieved from the validator and returning the result
 
         Args:
-            synapse (template.protocol.Dummy): The synapse object containing the 'dummy_input' data.
+            synapse (bt_automata.protocol.CAsynapse): The synapse object containing the initial cconditions, steps, and ruleset data.
 
         Returns:
-            template.protocol.Dummy: The synapse object with the 'dummy_output' field set to twice the 'dummy_input' value.
+            bt_automata.protocol.CAsynapse: The synapse object with the 'array_data' that houses the result of the simulation. 
 
-        The 'forward' function is a placeholder and should be overridden with logic that is appropriate for
-        the miner's intended operation. This method demonstrates a basic transformation of input data.
         """
-        # TODO(developer): Replace with actual implementation logic.
-        synapse.dummy_output = synapse.dummy_input * 2
+        # TODO(Alex or Wayne): Replace with actual logic!
+        # This is a sigma2's ugly placeholder for the actual logic that will be used to process the incoming synapse.
+        # Should give you an idea of how we expect the incoming CA query to be processed and returned by the miner.
+
+        # Get the initial state, timesteps, and rule function from the synapse.
+        initial_state = synapse.initial_state
+        timesteps = synapse.timesteps
+        rule_func = synapse.rule_func
+
+        # Run the simulation using the ruleset module.
+        ca_sim = rulesets.Simulate1D(initial_state, steps, rule_func, r=1)
+        ca_done = ca_sim.run()
+        synapse.array_data = serialize_and_compress(ca_done)
+
         return synapse
 
     async def blacklist(
-        self, synapse: template.protocol.Dummy
+        self, synapse: bt_automata.protocol.CAsynapse
     ) -> typing.Tuple[bool, str]:
         """
         Determines whether an incoming request should be blacklisted and thus ignored. Your implementation should
@@ -74,7 +90,7 @@ class Miner(BaseMinerNeuron):
         requests before they are deserialized to avoid wasting resources on requests that will be ignored.
 
         Args:
-            synapse (template.protocol.Dummy): A synapse object constructed from the headers of the incoming request.
+            synapse (bt_automata.protocol.CAsynapse): A synapse object constructed from the headers of the incoming request.
 
         Returns:
             Tuple[bool, str]: A tuple containing a boolean indicating whether the synapse's hotkey is blacklisted,
@@ -107,7 +123,7 @@ class Miner(BaseMinerNeuron):
         )
         return False, "Hotkey recognized!"
 
-    async def priority(self, synapse: template.protocol.Dummy) -> float:
+    async def priority(self, synapse: bt_automata.protocol.CAsynapse) -> float:
         """
         The priority function determines the order in which requests are handled. More valuable or higher-priority
         requests are processed before others. You should design your own priority mechanism with care.
@@ -115,7 +131,7 @@ class Miner(BaseMinerNeuron):
         This implementation assigns priority to incoming requests based on the calling entity's stake in the metagraph.
 
         Args:
-            synapse (template.protocol.Dummy): The synapse object that contains metadata about the incoming request.
+            synapse (bt_automata.protocol.CAsynapse): The synapse object that contains metadata about the incoming request.
 
         Returns:
             float: A priority score derived from the stake of the calling entity.
