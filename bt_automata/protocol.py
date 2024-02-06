@@ -55,7 +55,7 @@ class CAsynapse(bt.Synapse):
 
     def __str__(self):
         return (
-            f"Evolve(initial_state={self.initial_state[:12]}, "
+            f"CAsynapse(initial_state={self.initial_state[:12]}, "
             f"timesteps={self.timesteps}, "
             f"rule_func={self.rule_func}, "
             f"array_data={self.array_data[:12]}",
