@@ -18,10 +18,19 @@
 # DEALINGS IN THE SOFTWARE.
 
 import torch
-from typing import List
+from typing import Any, List
+
+import numpy as np
+from numpy.typing import NDArray
+
+from template.protocol import CAsynapse
+from template.utils.rulesets import rulesets
 
 
-def reward(query: int, response: int) -> float:
+def reward(
+    ground_truth_array: NDArray[Any],
+    response: CAsynapse,
+) -> float:
     """
     Reward the miner response to the dummy request. This method returns a reward
     value for the miner, which is used to update the miner's score.
@@ -30,13 +39,15 @@ def reward(query: int, response: int) -> float:
     - float: The reward value for the miner.
     """
 
-    return 1.0 if response == query * 2 else 0
+    pred_array = response.array_data
+    are_eq = np.array_equal(ground_truth_array, pred_array)
+    return 1.0 if are_eq else 0.0
 
 
 def get_rewards(
     self,
-    query: int,
-    responses: List[float],
+    query_synapse: CAsynapse,
+    responses: List[CAsynapse],
 ) -> torch.FloatTensor:
     """
     Returns a tensor of rewards for the given query and responses.
@@ -48,7 +59,12 @@ def get_rewards(
     Returns:
     - torch.FloatTensor: A tensor of rewards for the given query and responses.
     """
+
+    initial_state = query_synapse.initial_state
+    timesteps = query_synapse.timesteps
+    rule_func = query_synapse.rule_func
+    gt_array = rulesets.Simulate1D(initial_state, timesteps, rule_func, r=1).run()
     # Get all the reward results by iteratively calling your reward() function.
     return torch.FloatTensor(
-        [reward(query, response) for response in responses]
+        [reward(gt_array, response) for response in responses]
     ).to(self.device)
