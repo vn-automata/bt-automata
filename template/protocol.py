@@ -21,7 +21,7 @@ import pydantic
 import bittensor as bt
 
 
-class Evolve(bt.Synapse):
+class CAsynapse(bt.Synapse):
     # The initial state of the automata, encoded as string.
     initial_state: str
 
@@ -34,7 +34,7 @@ class Evolve(bt.Synapse):
     # The transformed array to be returned, encoded as string.
     array_data: typing.Optional[str] = None
 
-    # def evolve_example(self, synapse: protocol.Evolve) -> str:
+    # def evolve_example(self, synapse: protocol.CAsynapse) -> str:
     #     return synapse.array_data
 
     required_hash_fields: typing.List[str] = pydantic.Field(
@@ -49,7 +49,7 @@ class Evolve(bt.Synapse):
 
     def __str__(self):
         return (
-            f"Evolve(initial_state={self.initial_state[:12]}, "
+            f"CAsynapse(initial_state={self.initial_state[:12]}, "
             f"timesteps={self.timesteps}, "
             f"rule_func={self.rule_func}, "
             f"array_data={self.array_data[:12]}",
