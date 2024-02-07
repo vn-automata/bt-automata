@@ -40,6 +40,7 @@ def get_reward(
     - float: The reward value for the miner.
     """
 
+    print(f"QQQQQQQQQQQQQQQQQQQQQQQQQQQQQ::: {type(response.array_data)=}")
     pred_array = decompress_and_deserialize(response.array_data)
     are_eq = np.array_equal(ground_truth_array, pred_array)
     return 1.0 if are_eq else 0.0
