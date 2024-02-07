@@ -33,7 +33,7 @@ from bt_automata.base.validator import BaseValidatorNeuron
 #Internal modules
 from bt_automata.utils import rulesets
 from bt_automata.utils.rulesets import rule_classes
-from bt_automata.utils import serialize_and_compress
+from bt_automata.utils.misc import serialize_and_compress
 
 
 class Validator(BaseValidatorNeuron):
@@ -69,7 +69,7 @@ class Validator(BaseValidatorNeuron):
         # Choose a random rule function. Limit to Class 3/4 rules in 1D. Covert it to a rule function using the rule_classes dictionary.
         rule_name = random.choice(["Rule30", "Rule54", "Rule62", "Rule110", "Rule124", "Rule126"])
 
-        if rule_name is not in rule_classes:
+        if rule_name not in rule_classes:
             # Rule name not found. Sound the alarm
             raise ValueError(f"Rule '{rule_name}' not found in rule_classes dictionary.")
 
