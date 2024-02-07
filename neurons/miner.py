@@ -28,7 +28,7 @@ import bt_automata
 from bt_automata.base.miner import BaseMinerNeuron
 
 # import CA rulesets
-from bt_automata.utils.rulesets import rulesets
+from bt_automata.utils import rulesets
 from bt_automata.utils.misc import (
     serialize_and_compress,
     decompress_and_deserialize,

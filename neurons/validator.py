@@ -18,6 +18,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 
+import random
 import time
 
 # Bittensor
@@ -25,7 +26,6 @@ import bittensor as bt
 
 # Bittensor Validator Template:
 import bt_automata
-from bt_automata.validator import forward
 
 # import base validator class which takes care of most of the boilerplate
 from bt_automata.base.validator import BaseValidatorNeuron
@@ -69,9 +69,7 @@ class Validator(BaseValidatorNeuron):
         rule_name = random.choice(["Rule30", "Rule54", "Rule62", "Rule110", "Rule124", "Rule126"])
         rule_func = rule_classes.get(rule_name)
 
-        if rule_func is not None:
-        # Rule name found, proceed!
-        else:
+        if rule_func is None:
             # Rule name not found. Sound the alarm
             raise ValueError(f"Rule '{rule_name}' not found in rule_classes dictionary.")
 

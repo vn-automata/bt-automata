@@ -59,3 +59,4 @@ __spec_version__ = version.to_spec_version()
 from . import protocol
 from . import base
 from . import validator
+from . import utils

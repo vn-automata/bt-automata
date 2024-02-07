@@ -24,7 +24,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from bt_automata.protocol import CAsynapse
-from bt_automata.utils.rulesets import rulesets
+from bt_automata.utils import rulesets
 from bt_automata.utils.misc import decompress_and_deserialize
 
 
