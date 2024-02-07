@@ -1,1 +1,4 @@
-from .reward import reward
+from .reward_funcs import (
+    get_reward,
+    get_rewards,
+)

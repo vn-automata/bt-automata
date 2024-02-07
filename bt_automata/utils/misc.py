@@ -127,7 +127,7 @@ def serialize_and_compress(array: NDArray) -> str:
         TypeError: If the input is not a numpy array.
     """
     if not isinstance(array, np.ndarray):
-        raise TypeError("Input must be a numpy array")
+        raise TypeError(f"Input must be a numpy array:: {type(array)=}")
     bytes_data = array.tobytes()
     compressed_data = zlib.compress(bytes_data)
     b64_encoded_data = base64.b64encode(compressed_data).decode("utf-8")

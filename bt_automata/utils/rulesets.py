@@ -29,14 +29,8 @@ class ApplyRule(ABC):
         pass
 
 
-class InitialConditions:
-    def __init__(self, size: int):
-        self.size = size
-        # self.percentage = percentage
-
-    def init_simple_1d(self):
-        # Use cpl library as a shortcut
-        return cpl.init_simple(self.size)
+def get_initial_state(size):
+    return cpl.init_simple(size)
 
 
 class Rule30(ApplyRule):

@@ -61,7 +61,7 @@ class Validator(BaseValidatorNeuron):
         size = random.randint(100, 1000)
 
         # Generate the initial state using the ruelsets module
-        initial_state_raw = rulesets.InitialConditions(size)
+        initial_state_raw = rulesets.get_initial_state(size)
 
         # Choose a random number of time-steps, between 100 and 1000
         steps = random.randint(1000, 5000)
@@ -123,7 +123,7 @@ class Validator(BaseValidatorNeuron):
         # Log the results for monitoring purposes.
         bt.logging.info(f"Received responses: {responses}")
 
-        rewards = bt_automata.validator.reward.get_rewards(
+        rewards = bt_automata.validator.get_rewards(
             self,
             query_synapse=synapse,
             responses=responses,

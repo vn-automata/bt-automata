@@ -28,7 +28,7 @@ from bt_automata.utils import rulesets
 from bt_automata.utils.misc import decompress_and_deserialize
 
 
-def reward(
+def get_reward(
     ground_truth_array: NDArray[Any],
     response: CAsynapse,
 ) -> float:
@@ -61,11 +61,13 @@ def get_rewards(
     - torch.FloatTensor: A tensor of rewards for the given query and responses.
     """
 
-    initial_state = query_synapse.initial_state
+    initial_state = decompress_and_deserialize(query_synapse.initial_state)
     timesteps = query_synapse.timesteps
-    rule_func = query_synapse.rule_func
-    gt_array = rulesets.Simulate1D(initial_state, timesteps, rule_func, r=1).run()
+    rule_name = query_synapse.rule_name
+    rule_func_class = rulesets.rule_classes[rule_name]
+    rule_func_obj = rule_func_class()
+    gt_array = rulesets.Simulate1D(initial_state, timesteps, rule_func_obj, r=1).run()
     # Get all the reward results by iteratively calling your reward() function.
     return torch.FloatTensor(
-        [reward(gt_array, response) for response in responses]
+        [get_reward(gt_array, response) for response in responses]
     ).to(self.device)
