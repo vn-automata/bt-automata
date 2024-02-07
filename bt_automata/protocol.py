@@ -34,10 +34,10 @@ class CAsynapse(bt.Synapse):
         description="The number of timesteps to evolve the cellular automata.",
     )
 
-    rule_func: str = pydantic.Field(
+    rule_name: str = pydantic.Field(
         "",
-        title="Rule Function",
-        description="The rule function to apply to the cellular automata.",
+        title="Name of Rule Function",
+        description="The name of the rule function to apply to the cellular automata.",
     )
 
     array_data: typing.Optional[str] = pydantic.Field(
@@ -47,7 +47,7 @@ class CAsynapse(bt.Synapse):
     )
 
     required_hash_fields: typing.List[str] = pydantic.Field(
-        ["initial_state", "timesteps", "rule_func", "array_data"],
+        ["initial_state", "timesteps", "rule_name", "array_data"],
         title="Required Hash Fields",
         description="A list of required fields for the hash.",
         allow_mutation=False,
@@ -57,7 +57,7 @@ class CAsynapse(bt.Synapse):
         return (
             f"CAsynapse(initial_state={self.initial_state[:12]}, "
             f"timesteps={self.timesteps}, "
-            f"rule_func={self.rule_func}, "
+            f"rule_name={self.rule_name}, "
             f"array_data={self.array_data[:12]}",
             f"axon={self.axon.dict()}",
             f"dendrite={self.dendrite.dict()}",

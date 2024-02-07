@@ -30,7 +30,7 @@ class ApplyRule(ABC):
 
 
 class InitialConditions:
-    def init(self, size: int):
+    def __init__(self, size: int):
         self.size = size
         # self.percentage = percentage
 
@@ -119,7 +119,7 @@ class Simulate1D:
     - r (int, optional): The neighborhood radius. Defaults to 1.
     """
 
-    def init(
+    def __init__(
         self,
         ca: NDArray[np.float32],
         timesteps: int,

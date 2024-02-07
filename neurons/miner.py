@@ -67,9 +67,10 @@ class Miner(BaseMinerNeuron):
         # Should give you an idea of how we expect the incoming CA query to be processed and returned by the miner.
 
         # Get the initial state, timesteps, and rule function from the synapse.
-        initial_state = synapse.initial_state
+        initial_state = decompress_and_deserialize(synapse.initial_state)
         timesteps = synapse.timesteps
-        rule_func = synapse.rule_func
+        rule_name = synapse.rule_name
+        rule_func = rulesets.rule_classes[rule_name]
 
         # Run the simulation using the ruleset module.
         ca_sim = rulesets.Simulate1D(initial_state, steps, rule_func, r=1)

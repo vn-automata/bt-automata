@@ -67,27 +67,26 @@ class Validator(BaseValidatorNeuron):
 
         # Choose a random rule function. Limit to Class 3/4 rules in 1D. Covert it to a rule function using the rule_classes dictionary.
         rule_name = random.choice(["Rule30", "Rule54", "Rule62", "Rule110", "Rule124", "Rule126"])
-        rule_func = rule_classes.get(rule_name)
 
-        if rule_func is None:
+        if rule_name is not in rule_classes:
             # Rule name not found. Sound the alarm
             raise ValueError(f"Rule '{rule_name}' not found in rule_classes dictionary.")
 
         # Log and return the parameters.
-        if initial_state is not None and steps is not None and rule_func is not None:
+        if initial_state is not None and steps is not None and rule_name is not None:
             bt.logging.info(
                 f"Generated cellular automata parameters: {initial_state}, {steps}, {rule_name}"
             )
-        return initial_state, steps, rule_func
+        return initial_state, steps, rule_name
 
 
     async def forward(self):
         """
         Validator forward pass. Consists of:
         - Generating the query
-        initial_state, steps, rule_func = self.get_random_params()
+        initial_state, steps, rule_name = self.get_random_params()
         - Running the simulation
-        rulesets.Simulate1D(initial_state, steps, rule_func, r=1).run()
+        rulesets.Simulate1D(initial_state, steps, rule_name, r=1).run()
         - Querying the miners
         - Getting the responses
         - Rewarding the miners
@@ -100,12 +99,12 @@ class Validator(BaseValidatorNeuron):
             k=sample_size,
         )
 
-        initial_state, timesteps, rule_func = self.get_random_params()
+        initial_state, timesteps, rule_name = self.get_random_params()
         # TODO: should the initial_state be compressed too???
         synapse = bt_automata.protocol.CAsynapse(
             initial_state=initial_state,
             timesteps=timesteps,
-            rule_func=rule_func,
+            rule_name=rule_name,
         )
 
         # The dendrite client queries the network.
