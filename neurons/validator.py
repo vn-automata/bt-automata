@@ -33,6 +33,7 @@ from bt_automata.base.validator import BaseValidatorNeuron
 #Internal modules
 from bt_automata.utils import rulesets
 from bt_automata.utils.rulesets import rule_classes
+from bt_automata.utils import serialize_and_compress
 
 
 class Validator(BaseValidatorNeuron):
@@ -60,7 +61,7 @@ class Validator(BaseValidatorNeuron):
         size = random.randint(100, 1000)
 
         # Generate the initial state using the ruelsets module
-        initial_state = rulesets.InitialConditions(size)
+        initial_state_raw = rulesets.InitialConditions(size)
 
         # Choose a random number of time-steps, between 100 and 1000
         steps = random.randint(1000, 5000)
@@ -73,10 +74,12 @@ class Validator(BaseValidatorNeuron):
             raise ValueError(f"Rule '{rule_name}' not found in rule_classes dictionary.")
 
         # Log and return the parameters.
-        if initial_state is not None and steps is not None and rule_name is not None:
+        if initial_state_raw is not None and steps is not None and rule_name is not None:
             bt.logging.info(
-                f"Generated cellular automata parameters: {initial_state}, {steps}, {rule_name}"
+                f"Generated cellular automata parameters: {initial_state_raw}, {steps}, {rule_name}"
             )
+
+        initial_state = serialize_and_compress(initial_state_raw)
         return initial_state, steps, rule_name
 
 
