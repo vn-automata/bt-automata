@@ -99,13 +99,22 @@ def get_rewards(
             bt.logging.debug("Simulation failed to produce a result.")
             return torch.FloatTensor([]).to(self.device)  # Or handle differently
 
+        process_times = [response.dendrite.process_time for uid, response in responses]
+        max_process_time, min_process_time = max(process_times), min(process_times)
         rewards = np.zeros(256)
         for uid, response in responses:
             if response.array_data is None:
                 continue
             result_accuracy = get_reward(gt_array, response)
-            process_time = response.dendrite.process_time
-            rewards[uid] = result_accuracy * 0.7 + process_time * 0.3
+            # Linear normalization process time against the list of all miner process times
+            normalized_process_time = (
+                (response.dendrite.process_time - min_process_time)
+                / (max_process_time - min_process_time)
+                if max_process_time > min_process_time
+                else 0.0
+            )
+            # Include normalized process time in reward calculation
+            rewards[uid] = result_accuracy * 0.7 + 0.3 / (normalized_process_time + 1)
 
     except Exception as e:
         bt.logging.debug(f"Error in get_rewards: {e}")
