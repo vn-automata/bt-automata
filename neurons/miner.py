@@ -1,7 +1,4 @@
 # The MIT License (MIT)
-# Copyright © 2023 Yuma Rao
-# TODO(developer): Set your name
-# Copyright © 2023 <your name>
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 # documentation files (the “Software”), to deal in the Software without restriction, including without limitation
@@ -21,18 +18,14 @@ import time
 import typing
 import bittensor as bt
 
-# Bittensor Miner Template:
 import bt_automata
 
-# import base miner class which takes care of most of the boilerplate
-from bt_automata.base.miner import BaseMinerNeuron
-
-# import CA rulesets
 from bt_automata.utils import rulesets
 from bt_automata.utils.misc import (
     serialize_and_compress,
     decompress_and_deserialize,
 )
+from bt_automata.base.miner import BaseMinerNeuron
 
 
 class Miner(BaseMinerNeuron):
@@ -47,38 +40,72 @@ class Miner(BaseMinerNeuron):
     def __init__(self, config=None):
         super(Miner, self).__init__(config=config)
 
-        # TODO(developer): Anything specific to your use case you can do here
 
     async def forward(
         self, synapse: bt_automata.protocol.CAsynapse
     ) -> bt_automata.protocol.CAsynapse:
         """
-        Processes the incoming 'CAsynapse' synapse by running the specified simulation recieved from the validator and returning the result
+        Processes the incoming 'CAsynapse' synapse by running the specified simulation received from the validator and returning the result
 
         Args:
-            synapse (bt_automata.protocol.CAsynapse): The synapse object containing the initial cconditions, steps, and ruleset data.
+            synapse (bt_automata.protocol.CAsynapse): The synapse object containing the initial conditions, steps, and ruleset data.
 
         Returns:
-            bt_automata.protocol.CAsynapse: The synapse object with the 'array_data' that houses the result of the simulation. 
+            bt_automata.protocol.CAsynapse: The synapse object with the 'array_data' that houses the result of the simulation.
 
         """
-        # TODO(Alex or Wayne): Replace with actual logic!
-        # This is a sigma2's ugly placeholder for the actual logic that will be used to process the incoming synapse.
-        # Should give you an idea of how we expect the incoming CA query to be processed and returned by the miner.
 
-        # Get the initial state, timesteps, and rule function from the synapse.
-        initial_state = decompress_and_deserialize(synapse.initial_state)
-        timesteps = synapse.timesteps
-        rule_name = synapse.rule_name
-        rule_class = rulesets.rule_classes[rule_name]
-        rule_func_obj = rule_class()
+        bt.logging.info(
+            f"Received simulation request from: {synapse.dendrite.hotkey}. Initializing..."
+        )
 
-        # Run the simulation using the ruleset module.
-        ca_sim = rulesets.Simulate1D(initial_state, timesteps, rule_func_obj, r=1)
-        ca_done = ca_sim.run()
-        synapse.array_data = serialize_and_compress(ca_done)
+        try:
+            # Validate the received synapse data
+            if (
+                not synapse.initial_state
+                or synapse.timesteps <= 0
+                or not synapse.rule_name
+            ):
+                bt.logging.debug(
+                    "Invalid synapse data: Missing or incorrect initial state, timesteps, or rule name."
+                )
 
+            initial_state = decompress_and_deserialize(synapse.initial_state)
+
+            if initial_state is None:
+                raise bt.logging.debug("Failed to deserialize initial state.")
+
+            bt.logging.info("Initial state deserialized: {}".format(initial_state))
+
+            timesteps = synapse.timesteps
+            rule_name = synapse.rule_name
+            rule_class = rulesets.rule_classes[rule_name]
+            rule_func_obj = rule_class()
+
+            # Run the simulation using the ruleset module.
+            bt.logging.info(
+                f"Running simulation for {timesteps} timesteps with: {rule_name}."
+            )
+            ca_sim = rulesets.Simulate1D(initial_state, timesteps, rule_func_obj, r=1)
+            ca_done = ca_sim.run()
+            if ca_done is None:
+                raise bt.logging.debug("Simulation failed to produce a result.")
+            else:
+                bt.logging.info(f"Simulation complete. Result: {ca_done}")
+
+            array_data = serialize_and_compress(ca_done)
+            if array_data is None:
+                raise bt.logging.debug("Failed to serialize simulation result.")
+
+            bt.logging.info(f"Array data serialized, transmitting...")
+            synapse.array_data = array_data
+
+        except Exception as e:
+            bt.logging.error(f"Error occurred during forward pass: {e}")
+
+        bt.logging.info(f"Succesfully transmitted array data.")
         return synapse
+
 
     async def blacklist(
         self, synapse: bt_automata.protocol.CAsynapse

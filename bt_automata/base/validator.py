@@ -28,6 +28,7 @@ from typing import List
 from traceback import print_exception
 
 from bt_automata.base.neuron import BaseNeuron
+from bt_automata import __spec_version__ as spec_version
 
 
 class BaseValidatorNeuron(BaseNeuron):
@@ -48,6 +49,7 @@ class BaseValidatorNeuron(BaseNeuron):
         # Set up initial scoring weights for validation
         bt.logging.info("Building validation weights.")
         self.scores = torch.zeros_like(self.metagraph.S, dtype=torch.float32)
+        self.moving_averaged_scores = torch.zeros_like(self.scores)
 
         # Init sync with the network. Updates the metagraph.
         self.sync()

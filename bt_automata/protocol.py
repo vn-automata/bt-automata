@@ -26,24 +26,28 @@ class CAsynapse(bt.Synapse):
         "",
         title="Initial State",
         description="The initial state of the cellular automata, encoded as a string.",
+        allow_mutation=False,
     )
 
     timesteps: int = pydantic.Field(
         0,
         title="Timesteps",
         description="The number of timesteps to evolve the cellular automata.",
+        allow_mutation=False,
     )
 
     rule_name: str = pydantic.Field(
         "",
         title="Name of Rule Function",
         description="The name of the rule function to apply to the cellular automata.",
+        ALlow_mutation=False,
     )
 
     array_data: typing.Optional[str] = pydantic.Field(
         None,
         title="Array Data",
         description="The transformed array to be returned, encoded as a string.",
+        Allow_mutation=True,
     )
 
     required_hash_fields: typing.List[str] = pydantic.Field(
@@ -55,12 +59,12 @@ class CAsynapse(bt.Synapse):
 
     def __str__(self):
         return (
-            f"CAsynapse(initial_state={self.initial_state[:12]}, "
-            f"timesteps={self.timesteps}, "
-            f"rule_name={self.rule_name}, "
-            f"array_data={self.array_data[:12]}",
-            f"axon={self.axon.dict()}",
-            f"dendrite={self.dendrite.dict()}",
+            f"CAsynapse(initial_state={self.initial_state},"
+            f"timesteps={self.timesteps},"
+            f"rule_name={self.rule_name},"
+            f"array_data={self.array_data},"
+            f"axon={self.axon.dict()},"
+            f"dendrite={self.dendrite.dict()},"
         )
 
     def deserialize(self) -> str:
