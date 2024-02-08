@@ -135,22 +135,22 @@ class Validator(BaseValidatorNeuron):
             synapse=synapse,
             deserialize=False,
         )
+        uid_response_pairs = zip(miner_uids, responses)
+        valid_uid_response_pairs = [(uid, response) for uid, response in uid_response_pairs if response.array_data is not None]
 
-        valid_responses = [response for response in responses if response is not None]
-
-        if len(valid_responses) < len(responses):
+        if len(valid_uid_response_pairs) < len(responses):
             bt.logging.warning(
-                f"Skipped {len(responses) - len(valid_responses)} responses due to None array data"
+                f"Skipped {len(responses) - len(valid_uid_response_pairs)} responses due to None array data"
             )
 
-        bt.logging.info(f"Received {len(valid_responses)} responses.")
+        bt.logging.info(f"Received {len(valid_uid_response_pairs)} responses.")
 
         try:
             # Score the responses
             rewards = bt_automata.validator.get_rewards(
                 self,
                 query_synapse=synapse,
-                responses=valid_responses,
+                responses=valid_uid_response_pairs,
             )
 
             bt.logging.info(f"Scored responses: {rewards}")

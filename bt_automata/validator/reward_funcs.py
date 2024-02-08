@@ -87,6 +87,8 @@ def get_rewards(
             bt.logging.debug(f"Unknown rule name: {rule_name}")
             return torch.FloatTensor([]).to(self.device)  # Or handle differently
 
+        bt.logging.debug(f"Calculating rewards for {len(responses)} responses.")
+
         rule_func_class = rulesets.rule_classes[rule_name]
         rule_func_obj = rule_func_class()
 
@@ -97,7 +99,13 @@ def get_rewards(
             bt.logging.debug("Simulation failed to produce a result.")
             return torch.FloatTensor([]).to(self.device)  # Or handle differently
 
-        rewards = [get_reward(gt_array, response) for response in responses]
+        rewards = np.zeros(256)
+        for uid, response in responses:
+            if response.array_data is None:
+                continue
+            reward = get_reward(gt_array, response)
+            rewards[uid] = reward
+
     except Exception as e:
         bt.logging.debug(f"Error in get_rewards: {e}")
         rewards = []  # Decide on a fallback strategy
