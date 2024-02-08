@@ -105,7 +105,7 @@ def get_rewards(
                 continue
             result_accuracy = get_reward(gt_array, response)
             process_time = response.dendrite.process_time
-            rewards[uid] = result_accuracy * 0.7 + process_time * 0.3
+            rewards[uid] = result_accuracy * 0.7 + 0.3 / (process_time + 1)
 
     except Exception as e:
         bt.logging.debug(f"Error in get_rewards: {e}")
