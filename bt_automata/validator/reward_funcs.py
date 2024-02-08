@@ -110,8 +110,8 @@ def get_rewards(
             normalized_process_time = (
                 (response.dendrite.process_time - min_process_time)
                 / (max_process_time - min_process_time)
-                if max_process_time is not min_process_time
-                else 0
+                if max_process_time > min_process_time
+                else 0.0
             )
             # Include normalized process time in reward calculation
             rewards[uid] = result_accuracy * 0.7 + 0.3 / (normalized_process_time + 1)
