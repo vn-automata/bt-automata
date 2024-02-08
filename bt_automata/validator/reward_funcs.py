@@ -103,11 +103,12 @@ def get_rewards(
         for uid, response in responses:
             if response.array_data is None:
                 continue
-            reward = get_reward(gt_array, response)
-            rewards[uid] = reward
+            result_accuracy = get_reward(gt_array, response)
+            process_time = response.dendrite.process_time
+            rewards[uid] = result_accuracy * 0.7 + process_time * 0.3
 
     except Exception as e:
         bt.logging.debug(f"Error in get_rewards: {e}")
-        rewards = []  # Decide on a fallback strategy
+        rewards = np.zeros(256)  # Decide on a fallback strategy
 
     return torch.FloatTensor(rewards).to(self.device)
