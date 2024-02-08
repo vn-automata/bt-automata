@@ -23,6 +23,8 @@ from typing import Any, List
 import numpy as np
 from numpy.typing import NDArray
 
+import bittensor as bt
+
 from bt_automata.protocol import CAsynapse
 from bt_automata.utils import rulesets
 from bt_automata.utils.misc import decompress_and_deserialize
@@ -33,17 +35,42 @@ def get_reward(
     response: CAsynapse,
 ) -> float:
     """
-    Reward the miner response to the dummy request. This method returns a reward
-    value for the miner, which is used to update the miner's score.
+    Returns the reward value for the miner based on the comparison of the ground truth array and the response array.
+
+    Args:
+    - ground_truth_array (NDArray[Any]): The ground truth array for the cellular automata.
+    - response (CAsynapse): The response from the miner.
 
     Returns:
     - float: The reward value for the miner.
     """
 
-    print(f"QQQQQQQQQQQQQQQQQQQQQQQQQQQQQ::: {type(response.array_data)=}")
-    pred_array = decompress_and_deserialize(response.array_data)
-    are_eq = np.array_equal(ground_truth_array, pred_array)
-    return 1.0 if are_eq else 0.0
+    try:
+        pred_array = decompress_and_deserialize(response.array_data)
+
+        if pred_array is None:
+            bt.logging.debug("Failed to decompress and deserialize the response array.")
+            return 0.0
+
+        if not isinstance(pred_array, np.ndarray):
+            bt.logging.debug("Response array is not a numpy array.")
+            return 0.0
+
+        reward = 1.0 if np.array_equal(ground_truth_array, pred_array) else 0.0
+
+    except ValueError as e:
+        bt.logging.debug(f"Error in get_reward: {e}")
+        reward = 0.0
+
+    ground_truth_str = np.array2string(ground_truth_array, threshold=10, edgeitems=2)
+    pred_array_str = np.array2string(pred_array, threshold=10, edgeitems=2)
+
+    # Log comparison
+    bt.logging.info(
+        f"Comparison | \nGround Truth: \n{ground_truth_str} | \nResponse: \n{pred_array_str} | \nReward: {reward}"
+    )
+
+    return reward
 
 
 def get_rewards(
@@ -51,24 +78,28 @@ def get_rewards(
     query_synapse: CAsynapse,
     responses: List[CAsynapse],
 ) -> torch.FloatTensor:
-    """
-    Returns a tensor of rewards for the given query and responses.
+    try:
+        initial_state = decompress_and_deserialize(query_synapse.initial_state)
+        timesteps = query_synapse.timesteps
+        rule_name = query_synapse.rule_name
 
-    Args:
-    - query (int): The query sent to the miner.
-    - responses (List[float]): A list of responses from the miner.
+        if rule_name not in rulesets.rule_classes:
+            bt.logging.debug(f"Unknown rule name: {rule_name}")
+            return torch.FloatTensor([]).to(self.device)  # Or handle differently
 
-    Returns:
-    - torch.FloatTensor: A tensor of rewards for the given query and responses.
-    """
+        rule_func_class = rulesets.rule_classes[rule_name]
+        rule_func_obj = rule_func_class()
 
-    initial_state = decompress_and_deserialize(query_synapse.initial_state)
-    timesteps = query_synapse.timesteps
-    rule_name = query_synapse.rule_name
-    rule_func_class = rulesets.rule_classes[rule_name]
-    rule_func_obj = rule_func_class()
-    gt_array = rulesets.Simulate1D(initial_state, timesteps, rule_func_obj, r=1).run()
-    # Get all the reward results by iteratively calling your reward() function.
-    return torch.FloatTensor(
-        [get_reward(gt_array, response) for response in responses]
-    ).to(self.device)
+        gt_array = rulesets.Simulate1D(
+            initial_state, timesteps, rule_func_obj, r=1
+        ).run()
+        if gt_array is None:
+            bt.logging.debug("Simulation failed to produce a result.")
+            return torch.FloatTensor([]).to(self.device)  # Or handle differently
+
+        rewards = [get_reward(gt_array, response) for response in responses]
+    except Exception as e:
+        bt.logging.debug(f"Error in get_rewards: {e}")
+        rewards = []  # Decide on a fallback strategy
+
+    return torch.FloatTensor(rewards).to(self.device)

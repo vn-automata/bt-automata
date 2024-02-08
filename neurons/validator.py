@@ -1,7 +1,4 @@
 # The MIT License (MIT)
-# Copyright © 2023 Yuma Rao
-# TODO(developer): Set your name
-# Copyright © 2023 <your name>
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 # documentation files (the “Software”), to deal in the Software without restriction, including without limitation
@@ -30,7 +27,7 @@ import bt_automata
 # import base validator class which takes care of most of the boilerplate
 from bt_automata.base.validator import BaseValidatorNeuron
 
-#Internal modules
+# Internal modules
 from bt_automata.utils import rulesets
 from bt_automata.utils.rulesets import rule_classes
 from bt_automata.utils.misc import serialize_and_compress
@@ -38,9 +35,9 @@ from bt_automata.utils.misc import serialize_and_compress
 
 class Validator(BaseValidatorNeuron):
     """
-    Validator class for cellular automata protocol. This class will generate a random cellular automata rule and initial state, 
+    Validator class for cellular automata protocol. This class will generate a random cellular automata rule and initial state,
     and then query the miners for their responses. It will then reward the miners based on the quality of their responses.
-    1-diimensional cellular automata are supported through the cpl library. The rule is chosen from a set of class 3/4 rules, 
+    1-diimensional cellular automata are supported through the cpl library. The rule is chosen from a set of class 3/4 rules,
     and the initial state is a random 1D numpy array, such that the store of all agent states will be a 2-D numpy array indexed on time (steps).
 
     Default: This class inherits from the BaseValidatorNeuron class, which in turn inherits from BaseNeuron. The BaseNeuron class takes care of routine tasks such as setting up wallet, subtensor, metagraph, logging directory, parsing config, etc. You can override any of the methods in BaseNeuron if you need to customize the behavior.
@@ -55,33 +52,46 @@ class Validator(BaseValidatorNeuron):
         self.load_state()
 
     def get_random_params(self):
-        # Generate a random initial state as a 1D numpy array from cpl
+        """Generate random parameters for the cellular automata.
+
+        Returns:
+        - initial_state (str): The initial state of the cellular automata.
+        - timesteps (int): The number of time-steps to run the cellular automata for.
+        - rule_name (str): The name of the rule function to use for the cellular automata.
+        """
 
         # size defines the dimensionn of the 1-D array. Between 100-1000
-        size = random.randint(100, 1000)
+        size = random.randint(250, 500)
 
         # Generate the initial state using the ruelsets module
         initial_state_raw = rulesets.get_initial_state(size)
 
         # Choose a random number of time-steps, between 100 and 1000
-        steps = random.randint(1000, 5000)
+        steps = random.randint(250, 500)
 
         # Choose a random rule function. Limit to Class 3/4 rules in 1D. Covert it to a rule function using the rule_classes dictionary.
-        rule_name = random.choice(["Rule30", "Rule54", "Rule62", "Rule110", "Rule124", "Rule126"])
+        rule_name = random.choice(
+            ["Rule30", "Rule54", "Rule62", "Rule110", "Rule124", "Rule126"]
+        )
 
         if rule_name not in rule_classes:
             # Rule name not found. Sound the alarm
-            raise ValueError(f"Rule '{rule_name}' not found in rule_classes dictionary.")
+            raise bt.logging.debug(
+                f"Rule '{rule_name}' not found in rule_classes dictionary."
+            )
 
         # Log and return the parameters.
-        if initial_state_raw is not None and steps is not None and rule_name is not None:
+        if (
+            initial_state_raw is not None
+            and steps is not None
+            and rule_name is not None
+        ):
             bt.logging.info(
                 f"Generated cellular automata parameters: {initial_state_raw}, {steps}, {rule_name}"
             )
 
         initial_state = serialize_and_compress(initial_state_raw)
         return initial_state, steps, rule_name
-
 
     async def forward(self):
         """
@@ -96,46 +106,63 @@ class Validator(BaseValidatorNeuron):
         - Updating the scores
         """
 
-        sample_size = min(self.config.neuron.sample_size, self.metagraph.n.item())
+        # Get the UID of the validator
+        my_uid = self.metagraph.hotkeys.index(self.wallet.hotkey.ss58_address)
+        bt.logging.info(f"Validator {my_uid} running forward pass.")
+
+        # Get the UIDs of the miners
         miner_uids = bt_automata.utils.uids.get_random_uids(
             self,
-            k=sample_size,
+            k=min(self.config.neuron.sample_size, self.metagraph.n.item()),
+            exclude=[my_uid],
         )
 
+        # Generate the parameters for the cellular automata
         initial_state, timesteps, rule_name = self.get_random_params()
-        # TODO: should the initial_state be compressed too???
+
+        # Instantiate synapse object and populate it with the parameters
         synapse = bt_automata.protocol.CAsynapse(
             initial_state=initial_state,
             timesteps=timesteps,
             rule_name=rule_name,
         )
 
-        # The dendrite client queries the network.
+        bt.logging.info(f"Querying miners: {miner_uids}")
+
+        # Query the miners
         responses = self.dendrite.query(
-            # Send the query to selected miner axons in the network.
             axons=[self.metagraph.axons[uid] for uid in miner_uids],
-            # Pass the synapse to the miner.
             synapse=synapse,
-            # Do not deserialize the response so that we have access to the raw response.
             deserialize=False,
         )
 
-        # Log the results for monitoring purposes.
-        bt.logging.info(f"Received responses: {responses}")
+        valid_responses = [response for response in responses if response is not None]
 
-        rewards = bt_automata.validator.get_rewards(
-            self,
-            query_synapse=synapse,
-            responses=responses,
-        )
+        if len(valid_responses) < len(responses):
+            bt.logging.warning(
+                f"Skipped {len(responses) - len(valid_responses)} responses due to None array data"
+            )
 
-        bt.logging.info(f"Scored responses: {rewards}")
+        bt.logging.info(f"Received {len(valid_responses)} responses.")
 
-        # Update the scores based on the rewards. You may want to define your own update_scores function for custom behavior.
-        self.update_scores(rewards, miner_uids)
+        try:
+            # Score the responses
+            rewards = bt_automata.validator.get_rewards(
+                self,
+                query_synapse=synapse,
+                responses=valid_responses,
+            )
+
+            bt.logging.info(f"Scored responses: {rewards}")
+
+            self.update_scores(rewards, miner_uids)
+        except Exception as e:
+            bt.logging.error(f"Error scoring responses: {e}")
+
+        # Wait for next round
+        time.sleep(10)
 
 
-# The main function parses the configuration and runs the validator.
 if __name__ == "__main__":
     with Validator() as validator:
         while True:
