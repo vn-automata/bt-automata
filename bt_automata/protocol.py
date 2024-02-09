@@ -40,14 +40,14 @@ class CAsynapse(bt.Synapse):
         "",
         title="Name of Rule Function",
         description="The name of the rule function to apply to the cellular automata.",
-        ALlow_mutation=False,
+        allow_mutation=False,
     )
 
     array_data: typing.Optional[str] = pydantic.Field(
         None,
         title="Array Data",
         description="The transformed array to be returned, encoded as a string.",
-        Allow_mutation=True,
+        allow_mutation=True,
     )
 
     required_hash_fields: typing.List[str] = pydantic.Field(
