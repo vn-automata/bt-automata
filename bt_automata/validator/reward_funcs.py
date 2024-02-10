@@ -114,13 +114,10 @@ def get_rewards(
             return torch.FloatTensor([]).to(self.device)  # Or handle differently
 
         # Pull the process times from the synapse responses
-        process_times = [response.dendrite.process_time for uid, response in responses]
+        process_times_raw = [response.dendrite.process_time for uid, response in responses]
 
-        # Convert process times and result accuracies to tensors, if they aren't already
-        if not isinstance(process_times, torch.Tensor):
-            process_times = torch.tensor(process_times, dtype=torch.float32)
-        if not isinstance(result_accuracies, torch.Tensor):
-            result_accuracies = torch.tensor(result_accuracies, dtype=torch.float32)
+        # Convert process times to tensor
+        process_times = torch.tensor(process_times_raw, dtype=torch.float32)
 
         # Normalize process times inversely so that lower times are better
         normalized_process_times = (process_times - torch.min(process_times)) / (torch.max(process_times) - torch.min(process_times))
@@ -135,7 +132,7 @@ def get_rewards(
         accuracies_tensor = torch.tensor(accuracies, dtype=torch.float32)
 
         # Weight the accuracy and speed, multiplying by result_accuracy to handle 0 accuracy case mathematically
-        rewards = accuracies * sigmoid_process_times
+        rewards = accuracies_tensor * sigmoid_process_times
         if post_norm_or_max == "max":
             rn = rewards / torch.max(rewards)
         else:
