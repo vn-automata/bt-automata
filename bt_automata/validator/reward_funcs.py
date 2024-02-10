@@ -18,6 +18,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 import torch
+import torch.nn.functional as TF
 from typing import Any, List
 
 import numpy as np
@@ -30,19 +31,19 @@ from bt_automata.utils import rulesets
 from bt_automata.utils.misc import decompress_and_deserialize
 
 
-def get_reward(
+def get_accuracy(
     ground_truth_array: NDArray[Any],
     response: CAsynapse,
 ) -> float:
     """
-    Returns the reward value for the miner based on the comparison of the ground truth array and the response array.
+    Returns the accuracy value (0,1) for the miner based on the comparison of the ground truth array and the response array.
 
     Args:
     - ground_truth_array (NDArray[Any]): The ground truth array for the cellular automata.
     - response (CAsynapse): The response from the miner.
 
     Returns:
-    - float: The reward value for the miner.
+    - float: The (binary) accuracy value for the miner.
     """
 
     try:
@@ -56,11 +57,11 @@ def get_reward(
             bt.logging.debug("Response array is not a numpy array.")
             return 0.0
 
-        reward = 1.0 if np.array_equal(ground_truth_array, pred_array) else 0.0
+        accuracy = 1.0 if np.array_equal(ground_truth_array, pred_array) else 0.0
 
     except ValueError as e:
-        bt.logging.debug(f"Error in get_reward: {e}")
-        reward = 0.0
+        bt.logging.debug(f"Error in get_accuracy: {e}")
+        accuracy = 0.0
 
     ground_truth_str = np.array2string(ground_truth_array, threshold=10, edgeitems=2)
     pred_array_str = np.array2string(pred_array, threshold=10, edgeitems=2)
@@ -70,13 +71,26 @@ def get_reward(
         f"Comparison | \nGround Truth: \n{ground_truth_str} | \nResponse: \n{pred_array_str} | \nReward: {reward}"
     )
 
-    return reward
+    return accuracy
+
+
+def sigmoid(x, temperature=1.0, shift=0.0):
+    """
+    Returns the sigmoid transformation of the input tensor (vectorized)
+    Temperature controls the steepness of the sigmoid curve
+    Shift shifts the curve left or right along the x-axis.
+        Shift should be used to adjust the sigmoid curve to the range of the input values.
+    """
+    return 1 / (1 + torch.exp(-temperature * (x + shift)))
 
 
 def get_rewards(
     self,
     query_synapse: CAsynapse,
     responses: List[CAsynapse],
+    temperature = 10.0, #Steepness of the sigmoid curve
+    shift = -0.5, #Shifts sigmoid curve left or right along the x-axis
+    post_norm_or_max="max", #if anything but "max" tf.normalize is used, sum of the squares in the vector == 1.
 ) -> torch.FloatTensor:
     try:
         initial_state = decompress_and_deserialize(query_synapse.initial_state)
@@ -99,25 +113,37 @@ def get_rewards(
             bt.logging.debug("Simulation failed to produce a result.")
             return torch.FloatTensor([]).to(self.device)  # Or handle differently
 
-        process_times = [response.dendrite.process_time for uid, response in responses]
-        max_process_time, min_process_time = max(process_times), min(process_times)
-        rewards = np.zeros(256)
-        for uid, response in responses:
-            if response.array_data is None:
-                continue
-            result_accuracy = get_reward(gt_array, response)
-            # Linear normalization process time against the list of all miner process times
-            normalized_process_time = (
-                (response.dendrite.process_time - min_process_time)
-                / (max_process_time - min_process_time)
-                if max_process_time > min_process_time
-                else 0.0
-            )
-            # Include normalized process time in reward calculation
-            rewards[uid] = result_accuracy * 0.7 + 0.3 / (normalized_process_time + 1)
+        # Pull the process times from the synapse responses
+        process_times_raw = [response.dendrite.process_time for uid, response in responses]
+
+        # Convert process times to tensor
+        process_times = torch.tensor(process_times_raw, dtype=torch.float32)
+
+        # Normalize process times inversely so that lower times are better
+        normalized_process_times = (process_times - torch.min(process_times)) / (torch.max(process_times) - torch.min(process_times))
+        inverted_process_times = 1.0 - normalized_process_times  # Invert so higher times have lower scores
+        #breakpoint()
+
+        # Apply the sigmoid function to the inverted normalized process times
+        sigmoid_process_times = sigmoid(inverted_process_times, temperature, shift)
+
+        # Calculate accuracies for each response
+        accuracies = [get_accuracy(gt_array, response) for uid, response in responses]
+        accuracies_tensor = torch.tensor(accuracies, dtype=torch.float32)
+
+        # Weight the accuracy and speed, multiplying by result_accuracy to handle 0 accuracy case mathematically
+        rewards = accuracies_tensor * sigmoid_process_times
+        if post_norm_or_max == "max":
+            rn = rewards / torch.max(rewards)
+        else:
+            rn = TF.normalize(rewards, dim=0) # Norm such that the sum of the squares of all the elements in the vector will be 1.
+        #breakpoint()
+        return rn
+
 
     except Exception as e:
         bt.logging.debug(f"Error in get_rewards: {e}")
-        rewards = np.zeros(256)  # Decide on a fallback strategy
+        rewards = np.zeros(256)  # Fallback strategy: Log and return 0.
 
     return torch.FloatTensor(rewards).to(self.device)
+
