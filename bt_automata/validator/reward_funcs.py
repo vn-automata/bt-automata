@@ -74,25 +74,28 @@ def get_accuracy(
     return accuracy
 
 
-def sigmoid(
-    x,
-    temperature=1.0,
-    shift=0.0,
+def compute_proc_time_scores(
+    process_times,
+    temp = 10.,
+    comp_max = 1.5,
 ):
-    """
-    Returns the sigmoid transformation of the input tensor (vectorized)
-    Temperature controls the steepness of the sigmoid curve
-    Shift shifts the curve left or right along the x-axis.
-        Shift should be used to adjust the sigmoid curve to the range of the input values.
-    """
-    return 1. / (1. + torch.exp(-temperature * (x + shift)))
+    if not isinstance(process_times, torch.Tensor):
+        process_times = torch.tensor(process_times)
+    pt_0 = TF.normalize(process_times, dim=0)
+    pt_1 = torch.hstack((pt_0, torch.tensor([comp_max])))
+    pt_2 = pt_1.mean() - pt_1
+    pt_3 = pt_2 / pt_2.max()
+    pt_4 = temp * pt_3
+    pt_5 = TF.sigmoid(pt_4)
+    pt_res = pt_5[:-1]
+    return pt_res
 
 
 def get_rewards(
     self,
     query_synapse: CAsynapse,
     responses: List[CAsynapse],
-    temperature = 10.0, #Steepness of the sigmoid curve
+    temp = 10.0, #Steepness of the sigmoid curve
     shift = -0.5, #Shifts sigmoid curve left or right along the x-axis
     post_norm_or_max="max", #if anything but "max" tf.normalize is used, sum of the squares in the vector == 1.
 ) -> torch.FloatTensor:
@@ -118,21 +121,8 @@ def get_rewards(
             return torch.FloatTensor([]).to(self.device)  # Or handle differently
 
         # Pull the process times from the synapse responses
-        process_times_raw = [response.dendrite.process_time for _, response in responses]
-
-        # Convert process times to tensor
-        process_times = torch.tensor(process_times_raw, dtype=torch.float32)
-
-        # Normalize process times inversely so that lower times are better
-        if len(process_times) == 1:
-            normalized_process_times = torch.FloatTensor([1.0])
-        # TODO: handle case len(process_times) == 2:
-        else:
-            normalized_process_times = (process_times - torch.min(process_times)) / (torch.max(process_times) - torch.min(process_times))
-        inverted_process_times = 1.0 - normalized_process_times  # Invert so higher times have lower scores
-
-        # Apply the sigmoid function to the inverted normalized process times
-        sigmoid_process_times = sigmoid(inverted_process_times, temperature, shift)
+        process_times = [response.dendrite.process_time for _, response in responses]
+        proc_time_scores = compute_proc_time_scores(process_times, temp=temp)
 
         # Calculate accuracies for each response
         accuracies = [get_accuracy(gt_array, response) for uid, response in responses]
@@ -140,9 +130,9 @@ def get_rewards(
 
         # Weight the accuracy and speed, multiplying by result_accuracy to handle 0 accuracy case mathematically
         resp_uids = [uid.item() for uid, _ in responses]
-        bt.logging.debug(f"\n{resp_uids=}\n{process_times=}\n{normalized_process_times=}\n{inverted_process_times=}\n{sigmoid_process_times=}\n{accuracies=}\n{accuracies_tensor=}")
+        bt.logging.debug(f"\n{resp_uids=}\n{process_times=}\n{proc_time_scores=}\n{accuracies=}\n{accuracies_tensor=}")
 
-        rewards_for_responses = accuracies_tensor * sigmoid_process_times
+        rewards_for_responses = accuracies_tensor * proc_time_scores
         bt.logging.debug(f"\n{rewards_for_responses=}")
 
         rewards = torch.zeros(256).to(self.device)
