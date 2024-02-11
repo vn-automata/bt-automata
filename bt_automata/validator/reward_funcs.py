@@ -68,7 +68,7 @@ def get_accuracy(
 
     # Log comparison
     bt.logging.info(
-        f"Comparison | \nGround Truth: \n{ground_truth_str} | \nResponse: \n{pred_array_str} | \nReward: {reward}"
+        f"Comparison | \nGround Truth: \n{ground_truth_str} | \nResponse: \n{pred_array_str}"
     )
 
     return accuracy
