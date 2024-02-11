@@ -99,6 +99,10 @@ def get_rewards(
     shift = -0.5, #Shifts sigmoid curve left or right along the x-axis
     post_norm_or_max="max", #if anything but "max" tf.normalize is used, sum of the squares in the vector == 1.
 ) -> torch.FloatTensor:
+    if len(responses) == 0:
+        bt.logging.info("Got no responses. Returning reward tensor of zeros.")
+        return torch.zeros(256).to(self.device)  # Fallback strategy: Log and return 0.
+
     try:
         initial_state = decompress_and_deserialize(query_synapse.initial_state)
         timesteps = query_synapse.timesteps
