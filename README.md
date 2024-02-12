@@ -118,7 +118,7 @@ Register your miner keys to the network
 
 ```bash
 # Replace MYWALLET, MYHOTKEY, and MYPORTNUMBER with your wallet details 
-btcli subnet register --netuid XX --wallet.name MYWALLET--wallet.hotkey MYHOTKEY
+btcli subnet register --netuid XX --wallet.name MYWALLET --wallet.hotkey MYHOTKEY --axon.port MYPORTNUMBER
 ```
 
 You can start miner with the following commands, replacing placeholders with your wallet information, subtensor netowrk (assumes you are running a local [subtensor](https://github.com/opentensor/subtensor) ) and port number:
