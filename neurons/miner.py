@@ -91,7 +91,15 @@ class Miner(BaseMinerNeuron):
             if ca_done is None:
                 raise bt.logging.debug("Simulation failed to produce a result.")
             else:
-                bt.logging.info(f"Simulation complete. Result: {ca_done}")
+                char_1 = "\033[92m#\033[0m"  # Green color for 1's
+                char_0 = "."  # No color for 0's
+                
+                # Convert the binary array to a string representation
+                visualization = "\n".join("".join(char_1 if cell == 1 else char_0 for cell in row) for row in ca_done)
+
+                # Print the visualization with green and white color formatting
+                bt.logging.info(f"\033[94mSimulation complete. Result:\033[0m\n{visualization}")
+
 
             array_data = serialize_and_compress(ca_done)
             if array_data is None:
