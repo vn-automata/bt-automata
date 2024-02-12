@@ -1,133 +1,154 @@
-<div align="center">
 
-# **Bittensor Subnet bt-automata** <!-- omit in toc -->
+<p align="center">
+    <a href="https://taoshi.io">
+      <img width="500" alt="bt automata - subnet + repo logo" src="https://i.imgur.com/RrPk0yg.png"
+    </a>
+    
+</p>
+
+<div align='center'>
+
+
 [![Discord Chat](https://img.shields.io/discord/308323056592486420.svg)](https://discord.gg/bittensor)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
----
+# Cellular Automata - A Bittensor Subnet
+<div align = 'left'>
 
-## The Incentivized Internet <!-- omit in toc -->
+## Bittensor Resources
 
 [Discord](https://discord.gg/bittensor) • [Network](https://taostats.io/) • [Research](https://bittensor.com/whitepaper)
-</div>
 
----
-- [Quickstarter bt_automata](#quickstarter-bt_automata)
-- [Introduction](#introduction)
-  - [Example](#example)
-- [Installation](#installation)
-  - [Before you proceed](#before-you-proceed)
-  - [Install](#install)
-- [Writing your own incentive mechanism](#writing-your-own-incentive-mechanism)
-- [Subnet Links](#subnet-links)
-- [License](#license)
+## Table of Contents
 
----
-## Quickstarter bt_automata
+1. [Introduction](#introduction)
+2. [Features](#features)
+3. [Prerequisites](#prerequisites)
+   - [Validator Hardware](#validator-hardware)
+   - [Miner Hardware](#miner-hardware)
+4. [Installation](#installation)
+5. [Running a Validator](#running-a-validator)
+6. [Running a Miner](#running-a-miner)
+   - [Restarting your Miner](#restarting-your-miner)
+7. [FAQ](#faq)
+8. [Contributing](#contributing)
+9. [License](#license)
 
-This bt_automata contains all the required installation instructions, scripts, and files and functions for:
-- Building Bittensor subnets.
-- Creating custom incentive mechanisms and running these mechanisms on the subnets. 
-
-In order to simplify the building of subnets, this bt_automata abstracts away the complexity of the underlying blockchain and other boilerplate code. While the default behavior of the bt_automata is sufficient for a simple subnet, you should customize the bt_automata in order to meet your specific requirements.
 ---
 
 ## Introduction
+IMPORTANT: If you are brandnew to the Bittensor ecosystem, checkout the [Bittensor Website](https://bittensor.com/) before proceeding here!
 
-**IMPORTANT**: If you are new to Bittensor subnets, read this section before proceeding to [Installation](#installation) section. 
+This repository contains the code for the Cellular Automata Subnet. The primary focus of this subnet is to run, analyze, and store cellular automata to serve as a reasearch and science accellerator. The network itself will serve as a conduit between cellular automata reserachers in the scientific community and the computational resources available through the Bittensor community of miners and validators.
 
-The Bittensor blockchain hosts multiple self-contained incentive mechanisms called **subnets**. Subnets are playing fields in which:
-- Subnet miners who produce value, and
-- Subnet validators who produce consensus
+## Features
 
-determine together the proper distribution of TAO for the purpose of incentivizing the creation of value, i.e., generating digital commodities, such as intelligence or data. 
+- 1-D Cellular Automata simulated with [CellPyLib](https://cellpylib.org/index.html)
+- Miner scoring on simulation accuracy and processing time
+### Upcoming Features
+- 2-D Cellular automata simulated with [CellPyLib](https://cellpylib.org/index.html)
+- Searchable database of simulation results
+- [Wolfram Alpha](https://products.wolframalpha.com/api) integration
 
-Each subnet consists of:
-- Subnet miners and subnet validators.
-- A protocol using which the subnet miners and subnet validators interact with one another. This protocol is part of the incentive mechanism.
-- The Bittensor API using which the subnet miners and subnet validators interact with Bittensor's onchain consensus engine [Yuma Consensus](https://bittensor.com/documentation/validating/yuma-consensus). The Yuma Consensus is designed to drive these actors: subnet validators and subnet miners, into agreement on who is creating value and what that value is worth. 
+## Prerequisites
 
-This starter bt_automata is split into three primary files. To write your own incentive mechanism, you should edit these files. These files are:
-1. `bt_automata/protocol.py`: Contains the definition of the protocol used by subnet miners and subnet validators.
-2. `neurons/miner.py`: Script that defines the subnet miner's behavior, i.e., how the subnet miner responds to requests from subnet validators.
-3. `neurons/validator.py`: This script defines the subnet validator's behavior, i.e., how the subnet validator requests information from the subnet miners and determines the scores.
+- Requires **Python 3.8 or higher.**
+- [Bittensor](https://github.com/opentensor/bittensor#install)
 
-### Example
+### Validator Hardware
 
-The Bittensor Subnet 1 for Text Prompting is built using this bt_automata. See [Bittensor Text-Prompting](https://github.com/opentensor/text-prompting) for how to configure the files and how to add monitoring and telemetry and support multiple miner types. Also see this Subnet 1 in action on [Taostats](https://taostats.io/subnets/netuid-1/) explorer.
+    - 2 vCPU + 8 GB memory
+    - 100 GB balanced persistent disk
 
----
+### Miner Hardware
+**Miners are incentivized based on the accuracy of their simulation, and the processing time required to respond to the validator. Here is the minimum, but we recommend you run CA simulations on your server before registering on the mainnet.**
+
+    - 2 vCPU + 8 GB memory
+    - Run the miner using CPU
 
 ## Installation
 
-### Before you proceed
-Before you proceed with the installation of the subnet, note the following: 
+To install this subnet, first clone and install the dependencies:
 
-- Use these instructions to run your subnet locally for your development and testing, or on Bittensor testnet or on Bittensor mainnet. 
-- **IMPORTANT**: We **strongly recommend** that you first run your subnet locally and complete your development and testing before running the subnet on Bittensor testnet. Furthermore, make sure that you next run your subnet on Bittensor testnet before running it on the Bittensor mainnet.
-- You can run your subnet either as a subnet owner, or as a subnet validator or as a subnet miner. 
-- **IMPORTANT:** Make sure you are aware of the minimum compute requirements for your subnet. See the [Minimum compute YAML configuration](./min_compute.yml).
-- Note that installation instructions differ based on your situation: For example, installing for local development and testing will require a few additional steps compared to installing for testnet. Similarly, installation instructions differ for a subnet owner vs a validator or a miner. 
+```bash
+# clone repo
+git clone https://github.com/vn-automata/bt-automata.git
 
-### Install
+# change directory
+cd bt-automata
 
-- **Running locally**: Follow the step-by-step instructions described in this section: [Running Subnet Locally](./docs/running_on_staging.md).
-- **Running on Bittensor testnet**: Follow the step-by-step instructions described in this section: [Running on the Test Network](./docs/running_on_testnet.md).
-- **Running on Bittensor mainnet**: Follow the step-by-step instructions described in this section: [Running on the Main Network](./docs/running_on_mainnet.md).
+# create virtual environment
+python3 -m venv venv
 
----
+# activate the virtual environment
+. venv/bin/activate
 
-## Writing your own incentive mechanism
+# disable pip cache
+export PIP_NO_CACHE_DIR=1
 
-As described in [Quickstarter bt_automata](#quickstarter-bt_automata) section above, when you are ready to write your own incentive mechanism, update this bt_automata repository by editing the following files. The code in these files contains detailed documentation on how to update the bt_automata. Read the documentation in each of the files to understand how to update the bt_automata. There are multiple **TODO**s in each of the files identifying sections you should update. These files are:
-- `bt_automata/protocol.py`: Contains the definition of the wire-protocol used by miners and validators.
-- `neurons/miner.py`: Script that defines the miner's behavior, i.e., how the miner responds to requests from validators.
-- `neurons/validator.py`: This script defines the validator's behavior, i.e., how the validator requests information from the miners and determines the scores.
-- `bt_automata/forward.py`: Contains the definition of the validator's forward pass.
-- `bt_automata/reward.py`: Contains the definition of how validators reward miner responses.
+# install dependencies
+pip install -r requirements.txt
 
-In addition to the above files, you should also update the following files:
-- `README.md`: This file contains the documentation for your project. Update this file to reflect your project's documentation.
-- `CONTRIBUTING.md`: This file contains the instructions for contributing to your project. Update this file to reflect your project's contribution guidelines.
-- `bt_automata/__init__.py`: This file contains the version of your project.
-- `setup.py`: This file contains the metadata about your project. Update this file to reflect your project's metadata.
-- `docs/`: This directory contains the documentation for your project. Update this directory to reflect your project's documentation.
-
-__Note__
-The `bt_automata` directory should also be renamed to your project name.
----
-
-# Subnet Links
-In order to see real-world examples of subnets in-action, see the `subnet_links.json` document or access them from inside the `bt_automata` package by:
-```python
-import bt_automata
-bt_automata.SUBNET_LINKS
-[{'name': 'sn0', 'url': ''},
- {'name': 'sn1', 'url': 'https://github.com/opentensor/text-prompting/'},
- {'name': 'sn2', 'url': 'https://github.com/bittranslateio/bittranslate/'},
- {'name': 'sn3', 'url': 'https://github.com/gitphantomman/scraping_subnet/'},
- {'name': 'sn4', 'url': 'https://github.com/manifold-inc/targon/'},
-...
-]
+# create a local and editable installation
+python3 -m pip install -e .
 ```
+
+## Running a Validator
+
+The validator will generate simulation parameters, run the siumulation locally, send the parameters to the miner group, and then score the miners based on simulation acciuracy and processing time.
+
+```bash
+# Replace MYWALLET, MYHOTKEY with your wallet details
+python neurons/validator.py --netuid XX --wallet.name MYWALLET --wallet.hotkey MYHOTYKEY
+```
+
+## Running a Miner
+
+We recommend that you run your miner using PM2. PM2 is a production process manager for Node.js applications. It allows you to keep applications alive forever and reload them without downtime.
+
+```bash
+sudo apt update && sudo apt upgrade -y
+```
+
+```bash
+sudo apt install npm -y && sudo npm install pm2@latest -g && pm2 update
+```
+
+Register your miner keys to the network
+
+```bash
+# Replace MYWALLET, MYHOTKEY, and MYPORTNUMBER with your wallet details 
+btcli subnet register --netuid XX --wallet.name MYWALLET--wallet.hotkey MYHOTKEY
+```
+
+You can start miner with the following commands, replacing placeholders with your wallet information, subtensor netowrk (assumes you are running a local [subtensor](https://github.com/opentensor/subtensor) ) and port number:
+
+```bash
+# Replace MYWALLET, MYHOTKEY, and MYPORTNUMBER with your wallet details and port number
+pm2 start neurons/miner.py --interpreter python3 -- --netuid XX --subtensor.network local --wallet.name MYWALLET --wallet.hotkey MYHOTKEY --axon.port MYPORTNUMBER
+```
+### Restarting your miner
+
+After pulling and updates from the repository, don't forget to restart your miner:
+
+```bash
+pm2 restart all --update-env
+```
+
+## FAQ
+Q: How can I participate in the network?
+A: You can participate as a miner or a validator. Examples to get started are included in the "Running a Miner" and "Running a Validator" sections. 
+
+Q: I am a CA researcher. How can I access the completed simulations?
+A: Stay tuned. Once we have completed out proof-of-concept phase, we will open up a database of completed simulations from top miners for reserachers to access and study.
+
+Q: Can I mine on this subnet with CPU?
+A: Yes!
+
+## Contributing
+
+For instructions on how to contribute to this subnet, see CONTRIBUTING.md.
 
 ## License
-This repository is licensed under the MIT License.
-```text
-# The MIT License (MIT)
-# Copyright © 2023 Yuma Rao
 
-# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-# documentation files (the “Software”), to deal in the Software without restriction, including without limitation
-# the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
-# and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-# The above copyright notice and this permission notice shall be included in all copies or substantial portions of
-# the Software.
-
-# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
-# THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-# DEALINGS IN THE SOFTWARE.
-```
+This repository is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
