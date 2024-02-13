@@ -1,6 +1,4 @@
 # The MIT License (MIT)
-# Copyright © 2023 Yuma Rao
-# Copyright © 2023 Opentensor Foundation
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 # documentation files (the “Software”), to deal in the Software without restriction, including without limitation
@@ -19,6 +17,10 @@
 import time
 import math
 import hashlib as rpccheckhealth
+import numpy as np
+from numpy.typing import NDArray
+import zlib
+import base64
 from math import floor
 from typing import Callable, Any
 from functools import lru_cache, update_wrapper
@@ -110,3 +112,49 @@ def ttl_get_block(self) -> int:
     Note: self here is the miner or validator instance
     """
     return self.subtensor.get_current_block()
+
+
+def serialize_and_compress(array: NDArray) -> str:
+    """Serialize and compress a numpy array to a string.
+
+    Args:
+        array (NDArray): The numpy array to be serialized and compressed.
+
+    Returns:
+        str: The serialized and compressed array data as a string.
+
+    Raises:
+        TypeError: If the input is not a numpy array.
+    """
+    if not isinstance(array, np.ndarray):
+        raise TypeError(f"Input must be a numpy array:: {type(array)=}")
+    bytes_data = array.tobytes()
+    compressed_data = zlib.compress(bytes_data)
+    b64_encoded_data = base64.b64encode(compressed_data).decode("utf-8")
+    metadata = f"{array.dtype.str};{array.shape}"
+    array_data = f"{metadata}|{b64_encoded_data}"
+    return array_data
+
+
+def decompress_and_deserialize(data: str) -> NDArray:
+    """Decompress and deserialize a string to a numpy array.
+
+    Args:
+        data (str): The serialized and compressed array data as a string.
+
+    Returns:
+        NDArray: The deserialized and decompressed numpy array.
+
+    Raises:
+        TypeError: If the input is not a string.
+    """
+    if not isinstance(data, str):
+        raise TypeError("Input must be a string")
+    metadata, b64_encoded_data = data.split("|")
+    dtype_str, shape_str = metadata.split(";")
+    shape = tuple(map(int, shape_str.strip("()").split(",")))
+    dtype = np.dtype(dtype_str)
+    decoded_data = base64.b64decode(b64_encoded_data)
+    decompressed_data = zlib.decompress(decoded_data)
+    array = np.frombuffer(decompressed_data, dtype=dtype).reshape(shape)
+    return array

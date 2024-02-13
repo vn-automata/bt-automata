@@ -27,7 +27,8 @@ import bittensor as bt
 from typing import List
 from traceback import print_exception
 
-from template.base.neuron import BaseNeuron
+from bt_automata.base.neuron import BaseNeuron
+from bt_automata import __spec_version__ as spec_version
 
 
 class BaseValidatorNeuron(BaseNeuron):
@@ -48,6 +49,7 @@ class BaseValidatorNeuron(BaseNeuron):
         # Set up initial scoring weights for validation
         bt.logging.info("Building validation weights.")
         self.scores = torch.zeros_like(self.metagraph.S, dtype=torch.float32)
+        self.moving_averaged_scores = torch.zeros_like(self.scores)
 
         # Init sync with the network. Updates the metagraph.
         self.sync()
@@ -78,6 +80,9 @@ class BaseValidatorNeuron(BaseNeuron):
                 self.subtensor.serve_axon(
                     netuid=self.config.netuid,
                     axon=self.axon,
+                )
+                bt.logging.info(
+                    f"Running validator {self.axon} on network: {self.config.subtensor.chain_endpoint} with netuid: {self.config.netuid}"
                 )
             except Exception as e:
                 bt.logging.error(f"Failed to serve Axon with exception: {e}")
@@ -118,10 +123,6 @@ class BaseValidatorNeuron(BaseNeuron):
 
         # Check that validator is registered on the network.
         self.sync()
-
-        bt.logging.info(
-            f"Running validator {self.axon} on network: {self.config.subtensor.chain_endpoint} with netuid: {self.config.netuid}"
-        )
 
         bt.logging.info(f"Validator starting at block: {self.block}")
 

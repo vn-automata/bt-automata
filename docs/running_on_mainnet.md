@@ -24,26 +24,26 @@ After installing `bittensor`, proceed as below:
 
 ## Steps
 
-## 1. Install your subnet template
+## 1. Install your subnet bt_automata
 
 **NOTE: Skip this step if** you already did this during local testing and development.
 
 In your project directory:
 
 ```bash
-git clone https://github.com/opentensor/bittensor-subnet-template.git 
+git clone https://github.com/opentensor/bittensor-subnet-bt_automata.git 
 ```
 
-Next, `cd` into `bittensor-subnet-template` repo directory:
+Next, `cd` into `bittensor-subnet-bt_automata` repo directory:
 
 ```bash
-cd bittensor-subnet-template
+cd bittensor-subnet-bt_automata
 ```
 
-Install the Bittensor subnet template package:
+Install the Bittensor subnet bt_automata package:
 
 ```bash
-python -m pip install -e . # Install your subnet template package
+python -m pip install -e . # Install your subnet bt_automata package
 ```
 
 ## 2. Create wallets 

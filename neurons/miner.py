@@ -1,7 +1,4 @@
 # The MIT License (MIT)
-# Copyright © 2023 Yuma Rao
-# TODO(developer): Set your name
-# Copyright © 2023 <your name>
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 # documentation files (the “Software”), to deal in the Software without restriction, including without limitation
@@ -21,11 +18,14 @@ import time
 import typing
 import bittensor as bt
 
-# Bittensor Miner Template:
-import template
+import bt_automata
 
-# import base miner class which takes care of most of the boilerplate
-from template.base.miner import BaseMinerNeuron
+from bt_automata.utils import rulesets
+from bt_automata.utils.misc import (
+    serialize_and_compress,
+    decompress_and_deserialize,
+)
+from bt_automata.base.miner import BaseMinerNeuron
 
 
 class Miner(BaseMinerNeuron):
@@ -40,30 +40,75 @@ class Miner(BaseMinerNeuron):
     def __init__(self, config=None):
         super(Miner, self).__init__(config=config)
 
-        # TODO(developer): Anything specific to your use case you can do here
 
     async def forward(
-        self, synapse: template.protocol.Dummy
-    ) -> template.protocol.Dummy:
+        self, synapse: bt_automata.protocol.CAsynapse
+    ) -> bt_automata.protocol.CAsynapse:
         """
-        Processes the incoming 'Dummy' synapse by performing a predefined operation on the input data.
-        This method should be replaced with actual logic relevant to the miner's purpose.
+        Processes the incoming 'CAsynapse' synapse by running the specified simulation received from the validator and returning the result
 
         Args:
-            synapse (template.protocol.Dummy): The synapse object containing the 'dummy_input' data.
+            synapse (bt_automata.protocol.CAsynapse): The synapse object containing the initial conditions, steps, and ruleset data.
 
         Returns:
-            template.protocol.Dummy: The synapse object with the 'dummy_output' field set to twice the 'dummy_input' value.
+            bt_automata.protocol.CAsynapse: The synapse object with the 'array_data' that houses the result of the simulation.
 
-        The 'forward' function is a placeholder and should be overridden with logic that is appropriate for
-        the miner's intended operation. This method demonstrates a basic transformation of input data.
         """
-        # TODO(developer): Replace with actual implementation logic.
-        synapse.dummy_output = synapse.dummy_input * 2
+
+        bt.logging.info(
+            f"Received simulation request from: {synapse.dendrite.hotkey}. Initializing..."
+        )
+
+        try:
+            # Validate the received synapse data
+            if (
+                not synapse.initial_state
+                or synapse.timesteps <= 0
+                or not synapse.rule_name
+            ):
+                bt.logging.debug(
+                    "Invalid synapse data: Missing or incorrect initial state, timesteps, or rule name."
+                )
+
+            initial_state = decompress_and_deserialize(synapse.initial_state)
+
+            if initial_state is None:
+                raise bt.logging.debug("Failed to deserialize initial state.")
+
+            bt.logging.info("Initial state deserialized: {}".format(initial_state))
+
+            timesteps = synapse.timesteps
+            rule_name = synapse.rule_name
+            rule_class = rulesets.rule_classes[rule_name]
+            rule_func_obj = rule_class()
+
+            # Run the simulation using the ruleset module.
+            bt.logging.info(
+                f"Running simulation for {timesteps} timesteps with: {rule_name}."
+            )
+            ca_sim = rulesets.Simulate1D(initial_state, timesteps, rule_func_obj, r=1)
+            ca_done = ca_sim.run()
+            if ca_done is None:
+                raise bt.logging.debug("Simulation failed to produce a result.")
+            else:
+                bt.logging.info(f"Simulation complete. Result: {ca_done}")
+
+            array_data = serialize_and_compress(ca_done)
+            if array_data is None:
+                raise bt.logging.debug("Failed to serialize simulation result.")
+
+            bt.logging.info(f"Array data serialized, transmitting...")
+            synapse.array_data = array_data
+
+        except Exception as e:
+            bt.logging.error(f"Error occurred during forward pass: {e}")
+
+        bt.logging.info(f"Succesfully transmitted array data.")
         return synapse
 
+
     async def blacklist(
-        self, synapse: template.protocol.Dummy
+        self, synapse: bt_automata.protocol.CAsynapse
     ) -> typing.Tuple[bool, str]:
         """
         Determines whether an incoming request should be blacklisted and thus ignored. Your implementation should
@@ -74,7 +119,7 @@ class Miner(BaseMinerNeuron):
         requests before they are deserialized to avoid wasting resources on requests that will be ignored.
 
         Args:
-            synapse (template.protocol.Dummy): A synapse object constructed from the headers of the incoming request.
+            synapse (bt_automata.protocol.CAsynapse): A synapse object constructed from the headers of the incoming request.
 
         Returns:
             Tuple[bool, str]: A tuple containing a boolean indicating whether the synapse's hotkey is blacklisted,
@@ -107,7 +152,7 @@ class Miner(BaseMinerNeuron):
         )
         return False, "Hotkey recognized!"
 
-    async def priority(self, synapse: template.protocol.Dummy) -> float:
+    async def priority(self, synapse: bt_automata.protocol.CAsynapse) -> float:
         """
         The priority function determines the order in which requests are handled. More valuable or higher-priority
         requests are processed before others. You should design your own priority mechanism with care.
@@ -115,7 +160,7 @@ class Miner(BaseMinerNeuron):
         This implementation assigns priority to incoming requests based on the calling entity's stake in the metagraph.
 
         Args:
-            synapse (template.protocol.Dummy): The synapse object that contains metadata about the incoming request.
+            synapse (bt_automata.protocol.CAsynapse): The synapse object that contains metadata about the incoming request.
 
         Returns:
             float: A priority score derived from the stake of the calling entity.

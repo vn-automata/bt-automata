@@ -92,21 +92,21 @@ BUILD_BINARY=0 ./scripts/localnet.sh
 
 **NOTE**: Watch for any build or initialization outputs in this step. If you are building the project for the first time, this step will take a while to finish building, depending on your hardware.
 
-## 6. Install subnet template
+## 6. Install subnet bt_automata
 
-`cd` to your project directory and clone the bittensor subnet template repository:
+`cd` to your project directory and clone the bittensor subnet bt_automata repository:
 
 ```bash
-git clone https://github.com/opentensor/bittensor-subnet-template.git
+git clone https://github.com/opentensor/bittensor-subnet-bt_automata.git
 ```
 
 Navigate to the cloned repository:
 
 ```bash
-cd bittensor-subnet-template
+cd bittensor-subnet-bt_automata
 ```
 
-Install the bittensor-subnet-template Python package:
+Install the bittensor-subnet-bt_automata Python package:
 
 ```bash
 python -m pip install -e .
