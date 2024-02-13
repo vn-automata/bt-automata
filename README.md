@@ -39,7 +39,7 @@
 ## Introduction
 IMPORTANT: If you are brandnew to the Bittensor ecosystem, checkout the [Bittensor Website](https://bittensor.com/) before proceeding here!
 
-This repository contains the code for the Cellular Automata Subnet. The primary focus of this subnet is to run, analyze, and store cellular automata to serve as a reasearch and science accellerator. The network itself will serve as a conduit between cellular automata reserachers in the scientific community and the computational resources available through the Bittensor community of miners and validators.
+This repository contains the code for the Cellular Automata Subnet. The primary focus of this subnet is to run, analyze, and store [cellular automata](https://mathworld.wolfram.com/ElementaryCellularAutomaton.html) to serve as a reasearch and science accellerator. The network itself will serve as a conduit between cellular automata reserachers in the scientific community and the computational resources available through the Bittensor community of miners and validators.
 
 The significance of cellular automata lies in their ability to demonstrate how simple rules can evolve into complex patterns and behaviors over time, which can resemble processes observed in nature. This has profound implications in understanding complex systems and emergent behavior because it suggests that complexity may be emergent rather than inherent, arising from the interaction of simple components governed by simple rules, rather than from complexity embedded within the components themselves. Cellular automata have been applied in such diverse fields as, cryptography, physics, and biology, fluid dynamics, and social systems, and art. 
 
