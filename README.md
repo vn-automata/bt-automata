@@ -1,6 +1,5 @@
 
 <p align="center">
-    <a href="https://taoshi.io">
       <img width="500" alt="bt automata - subnet + repo logo" src="https://i.imgur.com/RrPk0yg.png"
     </a>
     
