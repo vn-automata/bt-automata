@@ -164,3 +164,4 @@ testing/
 
 # Misc
 .*.swp
+pip-freeze.txt
