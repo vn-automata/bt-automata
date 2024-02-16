@@ -49,6 +49,7 @@ class BaseValidatorNeuron(BaseNeuron):
         # Set up initial scoring weights for validation
         bt.logging.info("Building validation weights.")
         self.scores = torch.zeros_like(self.metagraph.S, dtype=torch.float32)
+        self.spec_version = spec_version
         bt.logging.debug("self.spec_version", self.spec_version)
         bt.logging.debug("self.scores", self.scores)
 
@@ -209,6 +210,9 @@ class BaseValidatorNeuron(BaseNeuron):
         """
         Sets the validator weights to the metagraph hotkeys based on the scores it has received from the miners. The weights determine the trust and incentive level the validator assigns to miner nodes on the network.
         """
+        bt.logging.info("set_weights()")
+        scores_shape = self.scores.shape
+        bt.logging.info("self.scores.shape", scores_shape)
 
         # Check if self.scores contains any NaN values and log a warning if it does.
         if torch.isnan(self.scores).any():
@@ -302,6 +306,7 @@ class BaseValidatorNeuron(BaseNeuron):
 
     def update_scores(self, rewards: torch.FloatTensor, uids: List[int]):
         """Performs exponential moving average on the scores based on the rewards received from the miners."""
+        bt.logging.info("update_scores()")
 
         # Check if rewards contains NaN values.
         if torch.isnan(rewards).any():
@@ -315,11 +320,16 @@ class BaseValidatorNeuron(BaseNeuron):
         else:
             uids_tensor = torch.tensor(uids).to(self.device)
 
+        bt.logging.debug(f"uids_tensor: {uids_tensor}")
+        bt.logging.debug(f"rewards: {rewards}")
+        bt.logging.debug(f"self.scores: {self.scores}")
+
         # Compute forward pass rewards, assumes uids are mutually exclusive.
         # shape: [ metagraph.n ]
-        scattered_rewards: torch.FloatTensor = self.scores.scatter(
-            0, uids_tensor, rewards
-        ).to(self.device)
+#        scattered_rewards: torch.FloatTensor = self.scores.scatter(
+#            0, uids_tensor, rewards
+#        ).to(self.device)
+        scattered_rewards: torch.FloatTensor = rewards
         bt.logging.debug(f"Scattered rewards: {scattered_rewards}")
 
         # Update scores with rewards produced by this step.
@@ -328,6 +338,7 @@ class BaseValidatorNeuron(BaseNeuron):
         self.scores: torch.FloatTensor = alpha * scattered_rewards + (
             1 - alpha
         ) * self.scores.to(self.device)
+        bt.logging.debug(f"{self.config.neuron.moving_average_alpha=}")
         bt.logging.debug(f"Updated moving avg scores: {self.scores}")
 
     def save_state(self):
