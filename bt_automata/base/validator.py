@@ -49,7 +49,8 @@ class BaseValidatorNeuron(BaseNeuron):
         # Set up initial scoring weights for validation
         bt.logging.info("Building validation weights.")
         self.scores = torch.zeros_like(self.metagraph.S, dtype=torch.float32)
-        self.moving_averaged_scores = torch.zeros_like(self.scores)
+        bt.logging.debug("self.spec_version", self.spec_version)
+        bt.logging.debug("self.scores", self.scores)
 
         # Init sync with the network. Updates the metagraph.
         self.sync()
@@ -215,11 +216,12 @@ class BaseValidatorNeuron(BaseNeuron):
                 f"Scores contain NaN values. This may be due to a lack of responses from miners, or a bug in your reward functions."
             )
 
+        bt.logging.debug("self.spec_version", self.spec_version)
+        bt.logging.debug("self.scores", self.scores)
+
         # Calculate the average reward for each uid across non-zero values.
         # Replace any NaN values with 0.
-        raw_weights = torch.nn.functional.normalize(
-            self.moving_averaged_scores, p=1, dim=0
-        )
+        raw_weights = torch.nn.functional.normalize(self.scores, p=1, dim=0)
 
         bt.logging.debug("raw_weights", raw_weights)
         bt.logging.debug("raw_weight_uids", self.metagraph.uids.to("cpu"))
@@ -255,7 +257,7 @@ class BaseValidatorNeuron(BaseNeuron):
             weights=uint_weights,
             wait_for_finalization=False,
             wait_for_inclusion=True,
-            version_key=spec_version,
+            version_key=self.spec_version,
         )
         if result is True:
             bt.logging.info("set_weights on chain successfully!")
@@ -318,7 +320,7 @@ class BaseValidatorNeuron(BaseNeuron):
         scattered_rewards: torch.FloatTensor = self.scores.scatter(
             0, uids_tensor, rewards
         ).to(self.device)
-        bt.logging.debug(f"Scattered rewards: {rewards}")
+        bt.logging.debug(f"Scattered rewards: {scattered_rewards}")
 
         # Update scores with rewards produced by this step.
         # shape: [ metagraph.n ]
