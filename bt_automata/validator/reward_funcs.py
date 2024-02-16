@@ -107,7 +107,7 @@ def get_rewards(
 ) -> torch.FloatTensor:
     if len(responses) == 0:
         bt.logging.info("Got no responses. Returning reward tensor of zeros.")
-        return torch.zeros(256).to(self.device)  # Fallback strategy: Log and return 0.
+        return [], torch.zeros_like(self.scores).to(self.device)  # Fallback strategy: Log and return 0.
 
     try:
         initial_state = decompress_and_deserialize(query_synapse.initial_state)
@@ -145,13 +145,14 @@ def get_rewards(
         bt.logging.debug(f"\n{rewards_for_responses=}")
 
 
-        rewards = torch.zeros(256).to(self.device)
+        rewards = torch.zeros_like(self.scores).to(self.device)
         rewards[resp_uids] = rewards_for_responses
         bt.logging.debug(f"\n{rewards=}")
 
     except Exception as e:
         bt.logging.debug(f"Error in get_rewards: {e}")
-        rewards = torch.zeros(256).to(self.device)  # Fallback strategy: Log and return 0.
+        resp_uids = []
+        rewards = torch.zeros_like(self.scores).to(self.device)  # Fallback strategy: Log and return 0.
 
-    return rewards
+    return resp_uids, rewards
 
