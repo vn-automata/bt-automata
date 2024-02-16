@@ -49,6 +49,7 @@ class BaseValidatorNeuron(BaseNeuron):
         # Set up initial scoring weights for validation
         bt.logging.info("Building validation weights.")
         self.scores = torch.zeros_like(self.metagraph.S, dtype=torch.float32)
+        self.spec_version = spec_version
         bt.logging.debug("self.spec_version", self.spec_version)
         bt.logging.debug("self.scores", self.scores)
 
@@ -219,7 +220,7 @@ class BaseValidatorNeuron(BaseNeuron):
                 f"Scores contain NaN values. This may be due to a lack of responses from miners, or a bug in your reward functions."
             )
 
-#        bt.logging.debug("self.spec_version", self.spec_version)
+        bt.logging.debug("self.spec_version", self.spec_version)
         bt.logging.debug("self.scores", self.scores)
 
         # Calculate the average reward for each uid across non-zero values.
@@ -260,7 +261,7 @@ class BaseValidatorNeuron(BaseNeuron):
             weights=uint_weights,
             wait_for_finalization=False,
             wait_for_inclusion=True,
-            version_key="misc",
+            version_key=self.spec_version,
         )
         if result is True:
             bt.logging.info("set_weights on chain successfully!")
