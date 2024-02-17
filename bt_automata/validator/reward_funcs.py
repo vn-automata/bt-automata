@@ -77,7 +77,7 @@ def get_accuracy(
 def compute_rewards(
     process_times,
     accuracies,
-    temp = 10.,
+    temp = 5.0,
     scale_mean = 1.0,
 ):
     if not isinstance(process_times, torch.Tensor):
