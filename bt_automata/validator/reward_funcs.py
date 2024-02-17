@@ -103,7 +103,7 @@ def get_rewards(
     self,
     query_synapse: CAsynapse,
     responses: List[CAsynapse],
-    temp = 10.0, #Steepness of the sigmoid curve
+    temp = 5.0, #Steepness of the sigmoid curve
 ) -> torch.FloatTensor:
     if len(responses) == 0:
         bt.logging.info("Got no responses. Returning reward tensor of zeros.")
@@ -136,7 +136,7 @@ def get_rewards(
         # Pull the process times from the synapse responses
         process_times = [response.dendrite.process_time for _, response in responses]
         resp_uids = [uid.item() for uid, _ in responses]
-        bt.logging.debug(f"\n{resp_uids=}\n{process_times=}\n{accuracies=}")
+        bt.logging.debug(f"\n{resp_uids=}\n{process_times=}\n{accuracies=}\n{temp=}")
         rewards_for_responses = compute_rewards(
             process_times,
             accuracies,
