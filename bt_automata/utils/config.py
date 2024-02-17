@@ -114,7 +114,7 @@ def add_args(cls, parser):
             "--neuron.sample_size",
             type=int,
             help="The number of miners to query in a single step.",
-            default=20,
+            default=40,
         )
 
         parser.add_argument(

@@ -78,7 +78,7 @@ def compute_rewards(
     process_times,
     accuracies,
     temp = 10.,
-    scale_mean = 2/3,
+    scale_mean = 1.0,
 ):
     if not isinstance(process_times, torch.Tensor):
         process_times = torch.tensor(process_times)
