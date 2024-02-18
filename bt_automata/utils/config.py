@@ -75,20 +75,6 @@ def add_args(cls, parser):
     )
 
     parser.add_argument(
-        "--axon.external_port",
-        type=int,
-        help="The external port to serve the axon on.",
-        default=8091,
-    )
-
-    parser.add_argument(
-        "--axon.external_ip",
-        type=str,
-        help="The external ip to serve the axon on.",
-        default=""
-    )
-    
-    parser.add_argument(
         "--neuron.device",
         type=str,
         help="Device to run on.",
