@@ -74,7 +74,7 @@ def get_accuracy(
     return accuracy
 
 
-def compute_rewards(
+def compute_rewards_sigmoid(
     process_times,
     accuracies,
     temp = 5.0,
@@ -97,7 +97,40 @@ def compute_rewards(
     pt_5 = TF.sigmoid(pt_4)
     pt_res = pt_5[:-1]
 
-    bt.logging.debug(f"\n{comp_max=}\n{temp=}\n{scale_mean=}\n{pt_res=}")
+    bt.logging.debug(f"\nsigmoid\n{comp_max=}\n{temp=}\n{scale_mean=}\n{pt_res=}")
+    return pt_res
+
+
+def compute_rewards_log(
+    process_times,
+    accuracies,
+    temp = 20.0,
+    scale_mean = 0.5,
+):
+    if not isinstance(process_times, torch.Tensor):
+        process_times = torch.tensor(process_times)
+    if not isinstance(accuracies, torch.Tensor):
+        accuracies = torch.tensor(accuracies)
+
+    pt_0 = TF.normalize(process_times, dim=0)
+    comp_max = (1. + pt_0.max()) / 2.
+    bad_pred_ids = (accuracies != 1.).nonzero().squeeze()
+    pt_0[bad_pred_ids] = comp_max
+
+#    pt_1 = torch.hstack((pt_0, torch.tensor([comp_max])))
+    pt_1 = pt_0
+    pt_2 = pt_1.mean() * scale_mean - pt_1
+    pt_3 = pt_2 / pt_2.max()
+    pt_4 = temp * pt_3
+    pt_5 = 1. - pt_4.min() + pt_4
+    pt_6 = torch.log(pt_5)
+#    pt_6 = pt_5
+    pt_7 = pt_6
+    pt_8 = pt_7 - pt_7.min()
+    pt_9 = pt_8 / pt_8.max()
+    pt_res = pt_9
+
+    bt.logging.debug(f"\nlog\n{comp_max=}\n{temp=}\n{scale_mean=}\n{pt_res=}")
     return pt_res
 
 
@@ -105,7 +138,7 @@ def get_rewards(
     self,
     query_synapse: CAsynapse,
     responses: List[CAsynapse],
-    temp = 5.0, #Steepness of the sigmoid curve
+    rewards_scale="log",
 ) -> torch.FloatTensor:
     if len(responses) == 0:
         bt.logging.info("Got no responses. Returning reward tensor of zeros.")
@@ -138,11 +171,15 @@ def get_rewards(
         # Pull the process times from the synapse responses
         process_times = [response.dendrite.process_time for _, response in responses]
         resp_uids = [uid.item() for uid, _ in responses]
-        bt.logging.debug(f"\n{resp_uids=}\n{process_times=}\n{accuracies=}\n{temp=}")
-        rewards_for_responses = compute_rewards(
+        bt.logging.debug(f"\n{resp_uids=}\n{process_times=}\n{accuracies=}")
+        if rewards_scale == "log":
+            compute_rewards_func = compute_rewards_log
+        else:
+            compute_rewards_func = compute_rewards_sigmoid
+        bt.logging.debug(f"\n{rewards_scale=}\n{compute_rewards_func=}")
+        rewards_for_responses = compute_rewards_func(
             process_times,
             accuracies,
-            temp=temp,
         )
         bt.logging.debug(f"\n{rewards_for_responses=}")
 
