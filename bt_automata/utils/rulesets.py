@@ -28,9 +28,17 @@ class ApplyRule(ABC):
     def rule_function(self, n, c, t):
         pass
 
-
-def get_initial_state(size):
-    return cpl.init_simple(size)
+def get_initial_state(size, simple=False):
+    """
+    Get the initial state of the cellular automaton.
+    Can be either a simple or random initial state.
+    Random 1-D params:
+        init_random(size, k=2, n_randomized=None, empty_value=0, dtype=<class 'numpy.int32'>)
+    """
+    if simple:
+        return cpl.init_simple(size)
+    else:
+        return cpl.init_random(size, k=2, empty_value=0, dtype=np.int32)
 
 
 class Rule30(ApplyRule):
