@@ -96,6 +96,8 @@ def compute_rewards(
     pt_4 = temp * pt_3
     pt_5 = TF.sigmoid(pt_4)
     pt_res = pt_5[:-1]
+
+    bt.logging.debug(f"\n{comp_max=}\n{temp=}\n{scale_mean=}\n{pt_res=}")
     return pt_res
 
 
@@ -107,7 +109,7 @@ def get_rewards(
 ) -> torch.FloatTensor:
     if len(responses) == 0:
         bt.logging.info("Got no responses. Returning reward tensor of zeros.")
-        return [], torch.zeros_like(self.scores).to(self.device)  # Fallback strategy: Log and return 0.
+        return [], torch.zeros_like(0).to(self.device)  # Fallback strategy: Log and return 0.
 
     try:
         initial_state = decompress_and_deserialize(query_synapse.initial_state)
@@ -144,15 +146,10 @@ def get_rewards(
         )
         bt.logging.debug(f"\n{rewards_for_responses=}")
 
-
-        rewards = torch.zeros_like(self.scores).to(self.device)
-        rewards[resp_uids] = rewards_for_responses
-        bt.logging.debug(f"\n{rewards=}")
-
     except Exception as e:
         bt.logging.debug(f"Error in get_rewards: {e}")
         resp_uids = []
-        rewards = torch.zeros_like(self.scores).to(self.device)  # Fallback strategy: Log and return 0.
+        rewards_for_responses = torch.zeros_like(0).to(self.device)  # Fallback strategy: Log and return 0.
 
-    return resp_uids, rewards
+    return resp_uids, rewards_for_responses
 
