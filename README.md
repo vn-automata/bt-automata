@@ -1,6 +1,5 @@
 
 <p align="center">
-    <a href="https://taoshi.io">
       <img width="500" alt="bt automata - subnet + repo logo" src="https://i.imgur.com/RrPk0yg.png"
     </a>
     
@@ -61,13 +60,13 @@ As the size or dimensionality of the automaton increases, so does the computatio
 
 ### Validator Hardware
 
-    - 2 vCPU + 8 GB memory
+    - Recommend 16 vCPU + 16 GB memory
     - 100 GB balanced persistent disk
 
 ### Miner Hardware
 **Miners are incentivized based on the accuracy of their simulation, and the processing time required to respond to the validator. Here is the minimum, but we recommend you run CA simulations on your server before registering on the mainnet.**
 
-    - 2 vCPU + 8 GB memory
+    - Reommend 16 vCPU + 16 GB memory
     - Run the miner using CPU
 
 ## Installation

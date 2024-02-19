@@ -147,7 +147,7 @@ class Validator(BaseValidatorNeuron):
 
         try:
             # Score the responses
-            rewards = bt_automata.validator.get_rewards(
+            reward_uids, rewards = bt_automata.validator.get_rewards(
                 self,
                 query_synapse=synapse,
                 responses=valid_uid_response_pairs,
@@ -155,7 +155,7 @@ class Validator(BaseValidatorNeuron):
 
             bt.logging.info(f"Scored responses: {rewards}")
 
-            self.update_scores(rewards, miner_uids)
+            self.update_scores(rewards, reward_uids)
         except Exception as e:
             bt.logging.error(f"Error scoring responses: {e}")
 

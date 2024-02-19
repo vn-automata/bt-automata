@@ -74,16 +74,24 @@ def get_accuracy(
     return accuracy
 
 
-def compute_proc_time_scores(
+def compute_rewards(
     process_times,
-    temp = 10.,
-    comp_max = 1.5,
+    accuracies,
+    temp = 5.0,
+    scale_mean = 1.0,
 ):
     if not isinstance(process_times, torch.Tensor):
         process_times = torch.tensor(process_times)
+    if not isinstance(accuracies, torch.Tensor):
+        accuracies = torch.tensor(accuracies)
+
     pt_0 = TF.normalize(process_times, dim=0)
+    comp_max = (1. + pt_0.max()) / 2.
+    bad_pred_ids = (accuracies != 1.).nonzero().squeeze()
+    pt_0[bad_pred_ids] = comp_max
+
     pt_1 = torch.hstack((pt_0, torch.tensor([comp_max])))
-    pt_2 = pt_1.mean() - pt_1
+    pt_2 = pt_1.mean() * scale_mean - pt_1
     pt_3 = pt_2 / pt_2.max()
     pt_4 = temp * pt_3
     pt_5 = TF.sigmoid(pt_4)
@@ -95,13 +103,11 @@ def get_rewards(
     self,
     query_synapse: CAsynapse,
     responses: List[CAsynapse],
-    temp = 10.0, #Steepness of the sigmoid curve
-    shift = -0.5, #Shifts sigmoid curve left or right along the x-axis
-    post_norm_or_max="max", #if anything but "max" tf.normalize is used, sum of the squares in the vector == 1.
+    temp = 5.0, #Steepness of the sigmoid curve
 ) -> torch.FloatTensor:
     if len(responses) == 0:
         bt.logging.info("Got no responses. Returning reward tensor of zeros.")
-        return torch.zeros(256).to(self.device)  # Fallback strategy: Log and return 0.
+        return [], torch.zeros_like(self.scores).to(self.device)  # Fallback strategy: Log and return 0.
 
     try:
         initial_state = decompress_and_deserialize(query_synapse.initial_state)
@@ -124,36 +130,29 @@ def get_rewards(
             bt.logging.debug("Simulation failed to produce a result.")
             return torch.FloatTensor([]).to(self.device)  # Or handle differently
 
-        # Pull the process times from the synapse responses
-        process_times = [response.dendrite.process_time for _, response in responses]
-        proc_time_scores = compute_proc_time_scores(process_times, temp=temp)
-
         # Calculate accuracies for each response
         accuracies = [get_accuracy(gt_array, response) for uid, response in responses]
-        accuracies_tensor = torch.tensor(accuracies, dtype=torch.float32)
 
-        # Weight the accuracy and speed, multiplying by result_accuracy to handle 0 accuracy case mathematically
+        # Pull the process times from the synapse responses
+        process_times = [response.dendrite.process_time for _, response in responses]
         resp_uids = [uid.item() for uid, _ in responses]
-        bt.logging.debug(f"\n{resp_uids=}\n{process_times=}\n{proc_time_scores=}\n{accuracies=}\n{accuracies_tensor=}")
-
-        rewards_for_responses = accuracies_tensor * proc_time_scores
+        bt.logging.debug(f"\n{resp_uids=}\n{process_times=}\n{accuracies=}\n{temp=}")
+        rewards_for_responses = compute_rewards(
+            process_times,
+            accuracies,
+            temp=temp,
+        )
         bt.logging.debug(f"\n{rewards_for_responses=}")
 
-        rewards = torch.zeros(256).to(self.device)
+
+        rewards = torch.zeros_like(self.scores).to(self.device)
         rewards[resp_uids] = rewards_for_responses
         bt.logging.debug(f"\n{rewards=}")
 
-        if post_norm_or_max == "max":
-            rn = rewards / torch.max(rewards)
-        else:
-            rn = TF.normalize(rewards, dim=0) # Norm such that the sum of the squares of all the elements in the vector will be 1.
-        #breakpoint()
-        return rn
-
-
     except Exception as e:
         bt.logging.debug(f"Error in get_rewards: {e}")
-        rewards = torch.zeros(256).to(self.device)  # Fallback strategy: Log and return 0.
+        resp_uids = []
+        rewards = torch.zeros_like(self.scores).to(self.device)  # Fallback strategy: Log and return 0.
 
-    return rewards
+    return resp_uids, rewards
 
