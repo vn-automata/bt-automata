@@ -36,9 +36,9 @@
 ---
 
 ## Introduction
-IMPORTANT: If you are brandnew to the Bittensor ecosystem, checkout the [Bittensor Website](https://bittensor.com/) before proceeding here!
+IMPORTANT: If you are brand new to the Bittensor ecosystem, check out the [Bittensor Website](https://bittensor.com/) before proceeding here!
 
-This repository contains the code for the Cellular Automata Subnet. The primary focus of this subnet is to run, analyze, and store cellular automata to serve as a reasearch and science accellerator. The network itself will serve as a conduit between cellular automata reserachers in the scientific community and the computational resources available through the Bittensor community of miners and validators.
+This repository contains the code for the Cellular Automata Subnet. The primary focus of this subnet is to run, analyze, and store cellular automata to serve as a research and science accelerator. The network itself will serve as a conduit between cellular automata researchers in the scientific community and the computational resources available through the Bittensor community of miners and validators.
 
 The significance of cellular automata lies in their ability to demonstrate how simple rules can evolve into complex patterns and behaviors over time, which can resemble processes observed in nature. This has profound implications in understanding complex systems and emergent behavior because it suggests that complexity may be emergent rather than inherent, arising from the interaction of simple components governed by simple rules, rather than from complexity embedded within the components themselves. Cellular automata have been applied in such diverse fields as, cryptography, physics, and biology, fluid dynamics, and social systems, and art. 
 
@@ -98,7 +98,7 @@ python3 -m pip install -e .
 
 ## Running a Validator
 
-The validator will generate simulation parameters, run the siumulation locally, send the parameters to the miner group, and then score the miners based on simulation acciuracy and processing time.
+The validator will generate simulation parameters, run the simulation locally, send the parameters to the miner group, and then score the miners based on simulation accuracy and processing time.
 
 ```bash
 # Replace MYWALLET, MYHOTKEY with your wallet details
@@ -124,7 +124,7 @@ Register your miner keys to the network
 btcli subnet register --netuid XX --wallet.name MYWALLET --wallet.hotkey MYHOTKEY --axon.port MYPORTNUMBER
 ```
 
-You can start miner with the following commands, replacing placeholders with your wallet information, subtensor netowrk (assumes you are running a local [subtensor](https://github.com/opentensor/subtensor) ) and port number:
+You can start miner with the following commands, replacing placeholders with your wallet information, subtensor network (assumes you are running a local [subtensor](https://github.com/opentensor/subtensor) ) and port number:
 
 ```bash
 # Replace MYWALLET, MYHOTKEY, and MYPORTNUMBER with your wallet details and port number
@@ -143,7 +143,7 @@ Q: How can I participate in the network?
 A: You can participate as a miner or a validator. Examples to get started are included in the "Running a Miner" and "Running a Validator" sections. 
 
 Q: I am a CA researcher. How can I access the completed simulations?
-A: Stay tuned. Once we have completed out proof-of-concept phase, we will open up a database of completed simulations from top miners for reserachers to access and study.
+A: Stay tuned. Once we have completed our proof-of-concept phase, we will open up a database of completed simulations from top miners for researchers to access and study.
 
 Q: Can I mine on this subnet with CPU?
 A: Yes!
