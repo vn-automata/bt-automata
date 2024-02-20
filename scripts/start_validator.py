@@ -14,6 +14,10 @@ def start_validator(
     result = subprocess.run(["pm2", "delete", pm2_name])
     print(result.stdout)
 
+    print("Resetting local changes...")
+    subprocess.run(["git", "reset", "--hard", "origin/main"])
+    # subprocess.run(["git", "reset", "--hard", "origin/features/auto-update"])
+    
     print("Pulling the latest code...")
     result = subprocess.run(["git", "pull"])
     print(result.stdout)
@@ -70,6 +74,8 @@ def update_and_restart(
         if current_version != latest_version:
             print("Updating to the latest version...")
             subprocess.run(["pm2", "delete", pm2_name])
+            subprocess.run(["git", "reset", "--hard", "origin/main"])
+            # subprocess.run(["git", "reset", "--hard", "origin/features/auto-update"])
             subprocess.run(["git", "pull"])
             subprocess.run(["pip", "install", "-r", "requirements.txt"])
             subprocess.run(["pip", "install", "-e", "."])
