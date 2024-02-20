@@ -6,8 +6,60 @@ from bt_automata.utils.helpers import get_version
 
 default_chain_endpoint = "wss://bittensor-finney.api.onfinality.io/public-ws"
 
+
+def start_validator(
+    pm2_name, wallet_name, wallet_hotkey, address, network, netuid, axon_port, sample_size = 12
+):
+    print("Deleting previous PM2 process...")
+    result = subprocess.run(["pm2", "delete", pm2_name])
+    print(result.stdout)
+
+    print("Pulling the latest code...")
+    result = subprocess.run(["git", "pull"])
+    print(result.stdout)
+
+    print("Installing dependencies...")
+    result = subprocess.run(["pip", "install", "-r", "requirements.txt"])
+    print(result.stdout)
+
+    print("Installing package...")
+    result = subprocess.run(["pip", "install", "-e", "."])
+    print(result.stdout)
+
+    print("Running validator code using PM2...")
+    result = subprocess.run(
+        [
+            "pm2",
+            "start",
+            "neurons/validator.py",
+            "--interpreter",
+            "python3",
+            "--name",
+            pm2_name,
+            "--",
+            "--wallet.name",
+            wallet_name,
+            "--wallet.hotkey",
+            wallet_hotkey,
+            "--netuid",
+            netuid,
+            "--subtensor.network",
+            network,
+            "--subtensor.chain_endpoint",
+            address,
+            "--axon.port",
+            axon_port,
+            "--logging.debug",
+            "--logging.trace",
+            "--neuron.sample_size",
+            str(sample_size),
+        ]
+    )
+    print(result.stdout)
+
+
 def update_and_restart(
-    pm2_name, wallet_name, wallet_hotkey, address, network, netuid, axon_port
+    pm2_name, wallet_name, wallet_hotkey, address, network, netuid, axon_port, sample_size = 12
 ):
     while True:
         current_version = bt_automata.__version__
@@ -31,20 +83,22 @@ def update_and_restart(
                     "--name",
                     pm2_name,
                     "--",
-                    "--wallet_name",
+                    "--wallet.name",
                     wallet_name,
-                    "--wallet_hotkey",
+                    "--wallet.hotkey",
                     wallet_hotkey,
                     "--netuid",
                     netuid,
-                    "--subtensor_network",
+                    "--subtensor.network",
                     network,
-                    "--subtensor_chain_endpoint",
+                    "--subtensor.chain_endpoint",
                     address,
-                    "--axon_port",
+                    "--axon.port",
                     axon_port,
                     "--logging.debug",
                     "--logging.trace",
+                    "--neuron.sample_size",
+                    str(sample_size),
                 ]
             )
         time.sleep(900)  # sleep for 15 mins
@@ -78,8 +132,19 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    print(args)
+
     try:
-        update_and_restart(
+        # update_and_restart(
+        #     args.pm2_name,
+        #     args.wallet_name,
+        #     args.wallet_hotkey,
+        #     args.subtensor_chain_endpoint,
+        #     args.subtensor_network,
+        #     args.netuid,
+        #     args.axon_port,
+        # )
+        start_validator(
             args.pm2_name,
             args.wallet_name,
             args.wallet_hotkey,
