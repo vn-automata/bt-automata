@@ -101,13 +101,15 @@ def update_and_restart(
                     str(sample_size),
                 ]
             )
-        time.sleep(900)  # sleep for 15 mins
-
+        else:
+            print("You're already on the latest version!!!")
+        
+        time.sleep(900)  # sleep for 15 minutes
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Automatically update and restart the validator process when a new version is released.",
-        epilog="Example usage: python start_validator.py --pm2_name 'ca-validator' --wallet_name 'wallet1' --wallet_hotkey 'key123' [--address 'wss://...']",
+        epilog="Example usage: python start_validator.py --pm2_name 'ca-validator' --wallet_name 'wallet1' --wallet_hotkey 'key123' [--subtensor_chain_endpoint 'wss://...']",
     )
 
     parser.add_argument("--pm2_name", required=True, help="Name of the PM2 process.")
@@ -132,19 +134,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    print(args)
-
     try:
-        # update_and_restart(
-        #     args.pm2_name,
-        #     args.wallet_name,
-        #     args.wallet_hotkey,
-        #     args.subtensor_chain_endpoint,
-        #     args.subtensor_network,
-        #     args.netuid,
-        #     args.axon_port,
-        # )
-        start_validator(
+        update_and_restart(
             args.pm2_name,
             args.wallet_name,
             args.wallet_hotkey,
@@ -153,5 +144,14 @@ if __name__ == "__main__":
             args.netuid,
             args.axon_port,
         )
+        # start_validator(
+        #     args.pm2_name,
+        #     args.wallet_name,
+        #     args.wallet_hotkey,
+        #     args.subtensor_chain_endpoint,
+        #     args.subtensor_network,
+        #     args.netuid,
+        #     args.axon_port,
+        # )
     except Exception as e:
         parser.error(f"An error occurred: {e}")
