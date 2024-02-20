@@ -63,7 +63,7 @@ def start_validator(
 
 
 def update_and_restart(
-    pm2_name, wallet_name, wallet_hotkey, address, network, netuid, axon_port, sample_size = 12
+    pm2_name, wallet_name, wallet_hotkey, address, network, netuid, axon_port, sample_size = 256
 ):
     while True:
         current_version = bt_automata.__version__

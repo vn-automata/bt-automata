@@ -5,6 +5,7 @@ import bittensor as bt
 def get_version(line_number: int = 54):
     # The raw content URL of the file on GitHub
     raw_url = 'https://raw.githubusercontent.com/vn-automata/bt-automata/main/bt_automata/__init__.py'
+    # raw_url = 'https://raw.githubusercontent.com/vn-automata/bt-automata/features/auto-update/bt_automata/__init__.py'
 
     # Send an HTTP GET request to the raw content URL
     response = requests.get(raw_url)

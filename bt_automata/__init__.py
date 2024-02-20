@@ -51,7 +51,7 @@ class AutomataVersion:
         )
 
 
-__version__ = "0.0.1"
+__version__ = "0.1.0"
 version = AutomataVersion.from_string(__version__)
 __spec_version__ = version.to_spec_version()
 
