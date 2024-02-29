@@ -29,7 +29,8 @@ from bt_automata.base.validator import BaseValidatorNeuron
 
 # Internal modules
 from bt_automata.utils import rulesets
-from bt_automata.utils.rulesets import rule_classes
+from bt_automata.utils.rulesets import rule_classes_1D
+from bt_automata.utils.rulesets import rule_classes_2D
 from bt_automata.utils.misc import serialize_and_compress
 
 
@@ -63,18 +64,24 @@ class Validator(BaseValidatorNeuron):
         # size defines the dimensionn of the 1-D array. Between 100-1000
         size = random.randint(250, 500)
 
-        # Generate the initial state using the ruelsets module
-        initial_state_raw = rulesets.get_initial_state(size)
+                # Choose a random rule function. Limit to Class 3/4 rules in 1D. Covert it to a rule function using the rule_classes dictionary.
+        rule_name = random.choice(
+            ["Rule30", "Rule54", "Rule62", "Rule110", "Rule124", "Rule126", 
+             "GameofLifeRule"]
+        )
+
+        # Generate the initial state using the InitialConditions class
+        initial_conditions = rulesets.InitialConditions(size=size, percentage=0.33, simple=False)
+        if rule_name in rulesets.rule_classes_1D:
+            initial_state_raw = initial_conditions.init_1d()
+        elif rule_name in rulesets.rule_classes_2D:
+            initial_state_raw = initial_conditions.init_2d()
 
         # Choose a random number of time-steps, between 100 and 1000
         steps = random.randint(250, 500)
+        
 
-        # Choose a random rule function. Limit to Class 3/4 rules in 1D. Covert it to a rule function using the rule_classes dictionary.
-        rule_name = random.choice(
-            ["Rule30", "Rule54", "Rule62", "Rule110", "Rule124", "Rule126"]
-        )
-
-        if rule_name not in rule_classes:
+        if rule_name not in rule_classes_1D and rule_name not in rule_classes_2D:
             # Rule name not found. Sound the alarm
             raise bt.logging.debug(
                 f"Rule '{rule_name}' not found in rule_classes dictionary."
