@@ -79,14 +79,23 @@ class Miner(BaseMinerNeuron):
 
             timesteps = synapse.timesteps
             rule_name = synapse.rule_name
-            rule_class = rulesets.rule_classes[rule_name]
-            rule_func_obj = rule_class()
 
+            if rule_name not in rulesets.rule_classes_1D and rule_name not in rulesets.rule_classes_2D:
+                bt.logging.debug(f"Unknown rule name: {rule_name}")
+                return synapse  # Or handle differently
+            
             # Run the simulation using the ruleset module.
             bt.logging.info(
                 f"Running simulation for {timesteps} timesteps with: {rule_name}."
             )
-            ca_sim = rulesets.Simulate1D(initial_state, timesteps, rule_func_obj, r=1)
+            rule_func_class = None
+            if rule_name in rulesets.rule_classes_1D:
+                rule_func_class = rulesets.rule_classes_1D[rule_name]
+                ca_sim = rulesets.Simulate1D(initial_state, timesteps, rule_func_class(), r=1)
+            elif rule_name in rulesets.rule_classes_2D:
+                rule_func_class = rulesets.rule_classes_2D[rule_name]
+                ca_sim = rulesets.Simulate2D(initial_state, timesteps, rule_func_class(), r=1)
+
             ca_done = ca_sim.run()
             if ca_done is None:
                 raise bt.logging.debug("Simulation failed to produce a result.")

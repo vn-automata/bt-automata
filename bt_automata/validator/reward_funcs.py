@@ -149,18 +149,25 @@ def get_rewards(
         timesteps = query_synapse.timesteps
         rule_name = query_synapse.rule_name
 
-        if rule_name not in rulesets.rule_classes:
+        if rule_name not in rulesets.rule_classes_1D and rule_name not in rulesets.rule_classes_2D:
             bt.logging.debug(f"Unknown rule name: {rule_name}")
             return torch.FloatTensor([]).to(self.device)  # Or handle differently
 
+
         bt.logging.debug(f"Calculating rewards for {len(responses)} responses.")
 
-        rule_func_class = rulesets.rule_classes[rule_name]
-        rule_func_obj = rule_func_class()
+        rule_func_class = None
+        if rule_name in rulesets.rule_classes_1D:
+            rule_func_class = rulesets.rule_classes_1D[rule_name]
+            gt_array = rulesets.Simulate1D(
+                initial_state, timesteps, rule_func_class(), r=1
+            ).run()
+        elif rule_name in rulesets.rule_classes_2D:
+            rule_func_class = rulesets.rule_classes_2D[rule_name]
+            gt_array = rulesets.Simulate2D(
+                initial_state, timesteps, rule_func_class(), r=1
+            ).run()
 
-        gt_array = rulesets.Simulate1D(
-            initial_state, timesteps, rule_func_obj, r=1
-        ).run()
         if gt_array is None:
             bt.logging.debug("Simulation failed to produce a result.")
             return torch.FloatTensor([]).to(self.device)  # Or handle differently
