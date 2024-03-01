@@ -60,14 +60,14 @@ class Validator(BaseValidatorNeuron):
         - rule_name (str): The name of the rule function to use for the cellular automata.
         """
 
-        # size defines the dimensionn of the 1-D array. Between 100-1000
-        size = random.randint(250, 500)
+        # size defines the dimensionn of the 1-D array. Between 500-1000
+        size = random.randint(500, 1000)
 
         # Generate the initial state using the ruelsets module
         initial_state_raw = rulesets.get_initial_state(size)
 
-        # Choose a random number of time-steps, between 100 and 1000
-        steps = random.randint(250, 500)
+        # Choose a random number of time-steps, between 10,000 and 50,000
+        steps = random.randint(10000, 50000)
 
         # Choose a random rule function. Limit to Class 3/4 rules in 1D. Covert it to a rule function using the rule_classes dictionary.
         rule_name = random.choice(
